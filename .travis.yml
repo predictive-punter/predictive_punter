@@ -1,0 +1,18 @@
+language: python
+python: '3.5'
+install:
+- pip install tox check-manifest coveralls
+script:
+- tox
+- check-manifest
+after_success:
+- coveralls
+deploy:
+  provider: pypi
+  user: justjasongreen
+  password:
+    secure: UGIs3TNbi+PJWjcxBWud74hCfrlwafPawF40glx64ETJBVIaJ2FR/0cL1rYkgoID1xyJqSwuPgSD/yzPbZx7zYoPGGhsnNDh9+LIs1V0yTGNcmTaRnBlRYoUQgxVViSbaa+lcpTHbUpiZLRrnJ/99ZawzbOLNlZxayXyMv0Cnhng88NWL9oG8OWJ3Qwj06Yijc0GGklLCu+XH7lzZU/t/ABoEnBxCiiCZx4OmU4APeOrn4UMzh2Nh+7YUJ8TDOQg4QSSSqw68ccl1ITpuSIKZefAI/vy5i3rzuD2gLhdwjJ6QkhHd3vdm99CL41uGQsjmhztkZ6mqu7mXsvwb2XDf3Gv1eVnjViqaB+2SIPBP0ZG1kfVeEe0+4YdF5a+eb2C2YIFxz8BYDFKVQMucW90qSU5TlksDVMkcjAVcKbd9FDvu6K6PE/hhhx68FME3Ec5qKhmi+MdkO7ufEJN3yKC32DV0/c/YX+WyZieZFaXlFQql+LpWbtrPal4QzTVLhzwkX5iDy6PryRiKgZNQvCClaoF2t1XOnHTBkHV5Hnb7bPlJp9r+W1S6OKbJe2zw6vEs8tvo/4Az4p5IPS1RLRsGn1WRQHET3P3dK/jI92VabsqT5v3PWKkFORQApASWz7wxb1E1LzJnu3jqFT/mBdWCOH712T7G1HVktaipMPi418=
+  distributions: sdist bdist_wheel
+  on:
+    repo: justjasongreen/predictive_punter
+    tags: true
