@@ -107,6 +107,12 @@ class Command:
     def process_runner(self, runner):
         """Process the specified runner"""
 
-        runner.horse
+        self.process_horse(runner.horse)
+
         runner.jockey
         runner.trainer
+
+    def process_horse(self, horse):
+        """Process the specified horse"""
+
+        horse.performances
