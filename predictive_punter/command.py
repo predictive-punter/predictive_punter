@@ -97,4 +97,9 @@ class Command:
     def process_meet(self, meet):
         """Process the specified meet"""
 
-        meet.races
+        self.process_collection(meet.races, self.process_race)
+
+    def process_race(self, race):
+        """Process the specified race"""
+
+        race.runners
