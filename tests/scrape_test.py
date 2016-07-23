@@ -24,6 +24,15 @@ def scrape_command(database_uri):
     predictive_punter.ScrapeCommand.main(['-d', database_uri, '2016-2-1', '2016-2-2'])
 
 
+def count_distinct(collection, key, exclude=None):
+    """Get the number of distinct values for key in the specified database collection"""
+
+    values = collection.distinct(key)
+    if exclude is not None and exclude in values:
+        values.remove(exclude)
+    return len(values)
+
+
 def test_meets(database, scrape_command):
     """The scrape command should populate the database with the expected number of meets"""
 
@@ -45,4 +54,10 @@ def test_runners(database, scrape_command):
 def test_horses(database, scrape_command):
     """The scrape command should populate the database with the expected number of horses"""
 
-    assert database['horses'].count() == len(database['runners'].distinct('horse_url'))
+    assert database['horses'].count() == count_distinct(database['runners'], 'horse_url', 'https://www.punters.com.au')
+
+
+def test_jockeys(database, scrape_command):
+    """The scrape command should populate the database with the expected number of jockeys"""
+
+    assert database['jockeys'].count() == count_distinct(database['runners'], 'jockey_url', 'https://www.punters.com.au/')

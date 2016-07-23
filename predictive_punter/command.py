@@ -108,3 +108,4 @@ class Command:
         """Process the specified runner"""
 
         runner.horse
+        runner.jockey
