@@ -1,6 +1,5 @@
 from datetime import datetime
 from getopt import getopt
-import sys
 
 import cache_requests
 from lxml import html
@@ -17,10 +16,10 @@ class Command:
     """Common functionality for command line utilities"""
 
     @classmethod
-    def main(cls):
+    def main(cls, args):
         """Main entry point for console script"""
 
-        config = cls.parse_args(sys.argv[1:])
+        config = cls.parse_args(args)
         command = cls(**config)
         command.process_dates(config['date_from'], config['date_to'])
 
@@ -35,7 +34,7 @@ class Command:
             'redis_uri':    'redis://localhost:6379/predictive_punter'
         }
 
-        opts, args = getopt(args, 'd:', ['database-uri='])
+        opts, args = getopt(args, 'd:r:', ['database-uri=', 'redis-uri='])
 
         for opt, arg in opts:
 

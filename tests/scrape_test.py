@@ -1,5 +1,4 @@
-import subprocess
-
+import predictive_punter
 import pymongo
 
 
@@ -11,7 +10,7 @@ def test_meets():
     database_client = pymongo.MongoClient(database_uri)
     database_client.drop_database(database_name)
 
-    subprocess.check_call('scrape -d {database_uri} 2016-2-1 2016-2-2'.format(database_uri=database_uri), shell=True)
+    predictive_punter.ScrapeCommand.main(['-d', database_uri, '2016-2-1', '2016-2-2'])
 
     database = database_client.get_default_database()
 

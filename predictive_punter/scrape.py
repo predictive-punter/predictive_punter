@@ -1,3 +1,5 @@
+import sys
+
 from . import Command
 
 
@@ -9,4 +11,4 @@ class ScrapeCommand(Command):
 def main():
     """Main entry point for scrape console script"""
 
-    ScrapeCommand.main()
+    ScrapeCommand.main(sys.argv[1:])
