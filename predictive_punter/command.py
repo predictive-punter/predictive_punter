@@ -1,3 +1,4 @@
+import concurrent.futures
 from datetime import datetime
 from getopt import getopt
 
@@ -71,6 +72,17 @@ class Command:
         
         self.provider = racing_data.Provider(database, scraper)
 
+    def process_collection(self, collection, target):
+        """Asynchronously process all items in collection via target"""
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+
+            futures = [executor.submit(target, item) for item in collection]
+
+            for future in concurrent.futures.as_completed(futures):
+                if future.exception() is not None:
+                    raise future.exception()
+
     def process_dates(self, date_from, date_to):
         """Process all racing data for the specified date range"""
 
@@ -80,4 +92,9 @@ class Command:
     def process_date(self, date):
         """Process all racing data for the specified date"""
 
-        self.provider.get_meets_by_date(date)
+        self.process_collection(self.provider.get_meets_by_date(date), self.process_meet)
+
+    def process_meet(self, meet):
+        """Process the specified meet"""
+
+        meet.races

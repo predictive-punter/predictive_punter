@@ -1,17 +1,36 @@
 import predictive_punter
 import pymongo
+import pytest
 
 
-def test_meets():
-    """The scrape command should populate the database with the expected number of meets"""
+@pytest.fixture(scope='module')
+def database(database_uri):
 
-    database_uri = 'mongodb://localhost:27017/predictive_punter_test'
     database_name = database_uri.split('/')[-1]
     database_client = pymongo.MongoClient(database_uri)
     database_client.drop_database(database_name)
+    return database_client.get_default_database()
+
+
+@pytest.fixture(scope='module')
+def database_uri():
+
+    return 'mongodb://localhost:27017/predictive_punter_test'
+
+
+@pytest.fixture(scope='module')
+def scrape_command(database_uri):
 
     predictive_punter.ScrapeCommand.main(['-d', database_uri, '2016-2-1', '2016-2-2'])
 
-    database = database_client.get_default_database()
+
+def test_meets(database, scrape_command):
+    """The scrape command should populate the database with the expected number of meets"""
 
     assert database['meets'].count() == 5
+
+
+def test_races(database, scrape_command):
+    """The scrape command should populate the database with the expected number of races"""
+
+    assert database['races'].count() == 8 + 8 + 8 + 7 + 8
