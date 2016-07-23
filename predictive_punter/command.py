@@ -109,3 +109,4 @@ class Command:
 
         runner.horse
         runner.jockey
+        runner.trainer

@@ -61,3 +61,9 @@ def test_jockeys(database, scrape_command):
     """The scrape command should populate the database with the expected number of jockeys"""
 
     assert database['jockeys'].count() == count_distinct(database['runners'], 'jockey_url', 'https://www.punters.com.au/')
+
+
+def test_trainers(database, scrape_command):
+    """The scrape command should populate the database with the expected number of trainers"""
+
+    assert database['trainers'].count() == count_distinct(database['runners'], 'trainer_url', 'https://www.punters.com.au/')
