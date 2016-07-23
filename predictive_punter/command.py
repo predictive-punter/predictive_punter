@@ -102,4 +102,9 @@ class Command:
     def process_race(self, race):
         """Process the specified race"""
 
-        race.runners
+        self.process_collection(race.runners, self.process_runner)
+
+    def process_runner(self, runner):
+        """Process the specified runner"""
+
+        runner.horse

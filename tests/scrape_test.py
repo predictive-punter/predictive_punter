@@ -40,3 +40,9 @@ def test_runners(database, scrape_command):
     """The scrape command should populate the database with the expected number of runners"""
 
     assert database['runners'].count() == 11 + 14 + 14 + 15 + 10 + 17 + 11 + 15 + 8 + 9 + 11 + 9 + 11 + 10 + 13 + 16 + 10 + 6 + 11 + 11 + 9 + 9 + 14 + 10 + 9 + 11 + 13 + 18 + 11 + 10 + 14 + 10 + 15 + 13 + 12 + 11 + 11 + 14 + 16
+
+
+def test_horses(database, scrape_command):
+    """The scrape command should populate the database with the expected number of horses"""
+
+    assert database['horses'].count() == len(database['runners'].distinct('horse_url'))
