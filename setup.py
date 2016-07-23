@@ -35,7 +35,15 @@ setup(
 
     packages=find_packages(exclude=['tests']),
     setup_requires=[],
-    install_requires=[],
+    install_requires=[
+        'cache_requests',
+        'lxml',
+        'punters_client',
+        'pymongo',
+        'racing_data',
+        'redis',
+        'requests'
+    ],
     extras_require={
         'dev':  [
             'bumpversion',
@@ -50,6 +58,8 @@ setup(
     },
     data_files=[],
     entry_points={
-        'console_scripts':  []
+        'console_scripts':  [
+            'scrape=predictive_punter.scrape:main'
+        ]
     }
     )

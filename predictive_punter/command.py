@@ -1,0 +1,84 @@
+from datetime import datetime
+from getopt import getopt
+import sys
+
+import cache_requests
+from lxml import html
+import punters_client
+import pymongo
+import racing_data
+import redis
+import requests
+
+from .date_utils import *
+
+
+class Command:
+    """Common functionality for command line utilities"""
+
+    @classmethod
+    def main(cls):
+        """Main entry point for console script"""
+
+        config = cls.parse_args(sys.argv[1:])
+        command = cls(**config)
+        command.process_dates(config['date_from'], config['date_to'])
+
+    @classmethod
+    def parse_args(cls, args):
+        """Return a dictionary of configuration values based on the provided command line arguments"""
+        
+        config = {
+            'database_uri': 'mongodb://localhost:27017/predictive_punter',
+            'date_from':    datetime.now(),
+            'date_to':      datetime.now(),
+            'redis_uri':    'redis://localhost:6379/predictive_punter'
+        }
+
+        opts, args = getopt(args, 'd:', ['database-uri='])
+
+        for opt, arg in opts:
+
+            if opt in ('-d', '--database-uri'):
+                config['database_uri'] = arg
+
+            elif opt in ('-r', '--redis-uri'):
+                config['redis_uri'] = arg
+
+        if len(args) > 0:
+            config['date_from'] = config['date_to'] = datetime.strptime(args[-1], '%Y-%m-%d')
+            if len(args) > 1:
+                config['date_from'] = datetime.strptime(args[0], '%Y-%m-%d')
+
+        return config
+
+    def __init__(self, *args, **kwargs):
+
+        database_client = pymongo.MongoClient(kwargs['database_uri'])
+        database = database_client.get_default_database()
+
+        http_client = None
+        try:
+            http_client = cache_requests.Session(connection=redis.fromurl(kwargs['redis_uri']))
+        except BaseException:
+            try:
+                http_client = cache_requests.Session()
+            except BaseException:
+                http_client = requests.Session()
+
+        html_parser = html.fromstring
+
+        scraper = punters_client.Scraper(http_client, html_parser)
+        
+        self.provider = racing_data.Provider(database, scraper)
+
+    def process_dates(self, date_from, date_to):
+        """Process all racing data for the specified date range"""
+
+        for date in dates(date_from, date_to):
+            self.process_date(date)
+
+    def process_date(self, date):
+        """Process all racing data for the specified date"""
+
+        self.provider.get_meets_by_date(date)
