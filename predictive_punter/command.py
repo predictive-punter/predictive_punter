@@ -1,6 +1,7 @@
 import concurrent.futures
 from datetime import datetime
 from getopt import getopt
+import logging
 import time
 
 import cache_requests
@@ -35,10 +36,11 @@ class Command:
             'database_uri':     'mongodb://localhost:27017/predictive_punter',
             'date_from':        datetime.now(),
             'date_to':          datetime.now(),
+            'logging_level':    logging.INFO,
             'redis_uri':        'redis://localhost:6379/predictive_punter'
         }
 
-        opts, args = getopt(args, 'bd:r:', ['backup-database', 'database-uri=', 'redis-uri='])
+        opts, args = getopt(args, 'bd:qr:v', ['backup-database', 'database-uri=', 'quiet', 'redis-uri=', 'verbose'])
 
         for opt, arg in opts:
 
@@ -48,8 +50,14 @@ class Command:
             elif opt in ('-d', '--database-uri'):
                 config['database_uri'] = arg
 
+            elif opt in ('-q', '--quiet'):
+                config['logging_level'] = logging.WARNING
+
             elif opt in ('-r', '--redis-uri'):
                 config['redis_uri'] = arg
+
+            elif opt in ('-v', '--verbose'):
+                config['logging_level'] = logging.DEBUG
 
         if len(args) > 0:
             config['date_from'] = config['date_to'] = datetime.strptime(args[-1], '%Y-%m-%d')
@@ -59,6 +67,8 @@ class Command:
         return config
 
     def __init__(self, *args, **kwargs):
+
+        logging.basicConfig(level=kwargs['logging_level'])
 
         database_client = pymongo.MongoClient(kwargs['database_uri'])
         self.database = database_client.get_default_database()
