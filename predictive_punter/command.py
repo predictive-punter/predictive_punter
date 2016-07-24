@@ -128,7 +128,7 @@ class Command:
         """Process all racing data for the specified date range"""
 
         for date in dates(date_from, date_to):
-            self.process_date(date)
+            log_time('processing date {date:%Y-%m-%d}'.format(date=date), self.process_date, date)
 
     def process_date(self, date):
         """Process all racing data for the specified date"""
