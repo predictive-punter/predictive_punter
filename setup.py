@@ -17,7 +17,7 @@ setup(
     long_description=long_description,
     keywords='predictive analytics horse racing',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Intended Audience :: End Users/Desktop',
