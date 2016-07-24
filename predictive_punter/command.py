@@ -81,8 +81,6 @@ class Command:
 
     def backup_database(self):
         """Backup the database if backup_database is available"""
-        
-        if self.do_database_backups:
 
             for backup_name in [collection for collection in self.database.collection_names(False) if '_backup' in collection]:
                 self.database.drop_collection(backup_name)
@@ -93,8 +91,6 @@ class Command:
 
     def restore_database(self):
         """Restore the database if backup_database is available"""
-
-        if self.do_database_backups:
 
             for collection_name in [collection for collection in self.database.collection_names(False) if '_backup' not in collection]:
                 self.database.drop_collection(collection_name)
@@ -139,11 +135,14 @@ class Command:
             self.process_collection(self.provider.get_meets_by_date(date), self.process_meet)
 
         except BaseException:
-            self.restore_database()
+            logging.critical('An exception occurred while processing date {date:%Y-%m-%d}'.format(date=date))
+            if self.do_database_backups:
+                log_time('restoring database from backup', self.restore_database)
             raise
 
         else:
-            self.backup_database()
+            if self.do_database_backups:
+                log_time('backing up the database', self.backup_database)
 
     def process_meet(self, meet):
         """Process the specified meet"""
