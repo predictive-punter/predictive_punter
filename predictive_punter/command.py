@@ -157,12 +157,26 @@ class Command:
     def process_runner(self, runner):
         """Process the specified runner"""
 
-        self.process_horse(runner.horse)
+        if runner.horse is not None:
+            log_time('processing {horse}'.format(horse=runner.horse), self.process_horse, runner.horse)
 
-        runner.jockey
-        runner.trainer
+        if runner.jockey is not None:
+            log_time('processing {jockey}'.format(jockey=runner.jockey), self.process_jockey, runner.jockey)
+
+        if runner.trainer is not None:
+            log_time('processing {trainer}'.format(trainer=runner.trainer), self.process_trainer, runner.trainer)
 
     def process_horse(self, horse):
         """Process the specified horse"""
 
         horse.performances
+
+    def process_jockey(self, jockey):
+        """Process the specified jockey"""
+
+        pass
+
+    def process_trainer(self, trainer):
+        """Process the specified trainer"""
+
+        pass
