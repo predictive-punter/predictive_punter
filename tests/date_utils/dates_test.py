@@ -3,6 +3,18 @@ from datetime import datetime
 from predictive_punter import date_utils
 
 
+def test_equal():
+    """The dates iterator should generate the expected date when date_from == date_to"""
+
+    expected_dates = [
+        datetime(2016, 2, 2)
+    ]
+
+    actual_dates = [date for date in date_utils.dates(datetime(2016, 2, 2), datetime(2016, 2, 2))]
+
+    assert actual_dates == expected_dates
+
+
 def test_forward():
     """The dates iterator should generate the expected dates when date_from < date_to"""
 
