@@ -61,10 +61,7 @@ class Command:
 
         database_client = pymongo.MongoClient(kwargs['database_uri'])
         self.database = database_client.get_default_database()
-
-        self.backup_database_name = None
-        if kwargs['backup_database'] == True:
-            self.backup_database_name = self.database.name + '_backup'
+        self.do_database_backups = kwargs['backup_database']
 
         http_client = None
         try:
@@ -84,16 +81,26 @@ class Command:
     def backup_database(self):
         """Backup the database if backup_database is available"""
         
-        if self.backup_database_name is not None:
-            self.database.client.drop_database(self.backup_database_name)
-            self.database.client.admin.command('copydb', fromdb=self.database.name, todb=self.backup_database_name)
+        if self.do_database_backups:
+
+            for backup_name in [collection for collection in self.database.collection_names(False) if '_backup' in collection]:
+                self.database.drop_collection(backup_name)
+
+            for collection_name in [collection for collection in self.database.collection_names(False) if '_backup' not in collection]:
+                backup_name = collection_name + '_backup'
+                self.database[collection_name].aggregate([{'$out': backup_name}])
 
     def restore_database(self):
         """Restore the database if backup_database is available"""
 
-        if self.backup_database_name is not None:
-            self.database.client.drop_database(self.database.name)
-            self.database.client.admin.command('copydb', fromdb=self.backup_database_name, todb=self.database.name)
+        if self.do_database_backups:
+
+            for collection_name in [collection for collection in self.database.collection_names(False) if '_backup' not in collection]:
+                self.database.drop_collection(collection_name)
+
+            for backup_name in [collection for collection in self.database.collection_names(False) if '_backup' in collection]:
+                collection_name = backup_name.replace('_backup', '')
+                self.database[backup_name].aggregate([{'$out': collection_name}])
 
     def process_collection(self, collection, target):
         """Asynchronously process all items in collection via target"""
