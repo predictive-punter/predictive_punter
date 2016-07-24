@@ -82,22 +82,22 @@ class Command:
     def backup_database(self):
         """Backup the database if backup_database is available"""
 
-            for backup_name in [collection for collection in self.database.collection_names(False) if '_backup' in collection]:
-                self.database.drop_collection(backup_name)
+        for backup_name in [collection for collection in self.database.collection_names(False) if '_backup' in collection]:
+            self.database.drop_collection(backup_name)
 
-            for collection_name in [collection for collection in self.database.collection_names(False) if '_backup' not in collection]:
-                backup_name = collection_name + '_backup'
-                self.database[collection_name].aggregate([{'$out': backup_name}])
+        for collection_name in [collection for collection in self.database.collection_names(False) if '_backup' not in collection]:
+            backup_name = collection_name + '_backup'
+            self.database[collection_name].aggregate([{'$out': backup_name}])
 
     def restore_database(self):
         """Restore the database if backup_database is available"""
 
-            for collection_name in [collection for collection in self.database.collection_names(False) if '_backup' not in collection]:
-                self.database.drop_collection(collection_name)
+        for collection_name in [collection for collection in self.database.collection_names(False) if '_backup' not in collection]:
+            self.database.drop_collection(collection_name)
 
-            for backup_name in [collection for collection in self.database.collection_names(False) if '_backup' in collection]:
-                collection_name = backup_name.replace('_backup', '')
-                self.database[backup_name].aggregate([{'$out': collection_name}])
+        for backup_name in [collection for collection in self.database.collection_names(False) if '_backup' in collection]:
+            collection_name = backup_name.replace('_backup', '')
+            self.database[backup_name].aggregate([{'$out': collection_name}])
 
     def process_collection(self, collection, target):
         """Asynchronously process all items in collection via target"""
