@@ -12,6 +12,7 @@ import redis
 import requests
 
 from .date_utils import *
+from .profiling_utils import *
 
 
 class Command:
@@ -23,7 +24,7 @@ class Command:
 
         config = cls.parse_args(args)
         command = cls(**config)
-        command.process_dates(config['date_from'], config['date_to'])
+        log_time('processing dates from {date_from:%Y-%m-%d} to {date_to:%Y-%m-%d}'.format(date_from=config['date_from'], date_to=config['date_to']), command.process_dates, config['date_from'], config['date_to'])
 
     @classmethod
     def parse_args(cls, args):
