@@ -4,6 +4,16 @@ import pytest
 
 
 @pytest.fixture(scope='module')
+def backup_database(database_uri):
+
+    database_uri += '_backup'
+    database_name = database_uri.split('/')[-1]
+    database_client = pymongo.MongoClient(database_uri)
+    database_client.drop_database(database_name)
+    return database_client.get_default_database()
+
+
+@pytest.fixture(scope='module')
 def database(database_uri):
 
     database_name = database_uri.split('/')[-1]
@@ -21,7 +31,7 @@ def database_uri():
 @pytest.fixture(scope='module')
 def scrape_command(database_uri):
 
-    predictive_punter.ScrapeCommand.main(['-d', database_uri, '2016-2-1', '2016-2-2'])
+    predictive_punter.ScrapeCommand.main(['-b', '-d', database_uri, '2016-2-1', '2016-2-2'])
 
 
 def count_distinct(collection, key, exclude=None):
@@ -33,43 +43,44 @@ def count_distinct(collection, key, exclude=None):
     return len(values)
 
 
-def test_meets(database, scrape_command):
+def test_meets(database, backup_database, scrape_command):
     """The scrape command should populate the database with the expected number of meets"""
 
-    assert database['meets'].count() == 5
+    assert database['meets'].count() == backup_database['meets'].count() == 5
 
 
-def test_races(database, scrape_command):
+def test_races(database, backup_database, scrape_command):
     """The scrape command should populate the database with the expected number of races"""
 
-    assert database['races'].count() == 8 + 8 + 8 + 7 + 8
+    assert database['races'].count() == backup_database['races'].count() == 8 + 8 + 8 + 7 + 8
 
 
-def test_runners(database, scrape_command):
+def test_runners(database, backup_database, scrape_command):
     """The scrape command should populate the database with the expected number of runners"""
 
-    assert database['runners'].count() == 11 + 14 + 14 + 15 + 10 + 17 + 11 + 15 + 8 + 9 + 11 + 9 + 11 + 10 + 13 + 16 + 10 + 6 + 11 + 11 + 9 + 9 + 14 + 10 + 9 + 11 + 13 + 18 + 11 + 10 + 14 + 10 + 15 + 13 + 12 + 11 + 11 + 14 + 16
+    assert database['runners'].count() == backup_database['runners'].count() == 11 + 14 + 14 + 15 + 10 + 17 + 11 + 15 + 8 + 9 + 11 + 9 + 11 + 10 + 13 + 16 + 10 + 6 + 11 + 11 + 9 + 9 + 14 + 10 + 9 + 11 + 13 + 18 + 11 + 10 + 14 + 10 + 15 + 13 + 12 + 11 + 11 + 14 + 16
 
 
-def test_horses(database, scrape_command):
+def test_horses(database, backup_database, scrape_command):
     """The scrape command should populate the database with the expected number of horses"""
 
-    assert database['horses'].count() == count_distinct(database['runners'], 'horse_url', 'https://www.punters.com.au')
+    assert database['horses'].count() == backup_database['horses'].count() == count_distinct(database['runners'], 'horse_url', 'https://www.punters.com.au')
 
 
-def test_jockeys(database, scrape_command):
+def test_jockeys(database, backup_database, scrape_command):
     """The scrape command should populate the database with the expected number of jockeys"""
 
-    assert database['jockeys'].count() == count_distinct(database['runners'], 'jockey_url', 'https://www.punters.com.au/')
+    assert database['jockeys'].count() == backup_database['jockeys'].count() == count_distinct(database['runners'], 'jockey_url', 'https://www.punters.com.au/')
 
 
-def test_trainers(database, scrape_command):
+def test_trainers(database, backup_database, scrape_command):
     """The scrape command should populate the database with the expected number of trainers"""
 
-    assert database['trainers'].count() == count_distinct(database['runners'], 'trainer_url', 'https://www.punters.com.au/')
+    assert database['trainers'].count() == backup_database['trainers'].count() == count_distinct(database['runners'], 'trainer_url', 'https://www.punters.com.au/')
 
 
-def test_performances(database, scrape_command):
+def test_performances(database, backup_database, scrape_command):
     """The scrape command should populate the database with the expected number of performances"""
 
     assert database['performances'].count() >= database['runners'].count({'is_scratched': False})
+    assert backup_database['performances'].count() == database['performances'].count()
