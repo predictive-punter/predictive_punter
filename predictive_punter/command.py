@@ -169,7 +169,7 @@ class Command:
     def process_horse(self, horse):
         """Process the specified horse"""
 
-        self.process_collection(horse.performances, self.process_performance)
+        horse.performances
 
     def process_jockey(self, jockey):
         """Process the specified jockey"""
@@ -178,10 +178,5 @@ class Command:
 
     def process_trainer(self, trainer):
         """Process the specified trainer"""
-
-        pass
-
-    def process_performance(self, performance):
-        """Process the specified performance"""
 
         pass
