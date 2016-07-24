@@ -88,7 +88,7 @@ class Command:
 
             for collection_name in [collection for collection in self.database.collection_names(False) if '_backup' not in collection]:
                 backup_name = collection_name + '_backup'
-                self.database[collection_name].aggregate([{'$match': {}},{'$out': backup_name}])
+                self.database[collection_name].aggregate([{'$out': backup_name}])
 
     def restore_database(self):
         """Restore the database if backup_database is available"""
@@ -100,7 +100,7 @@ class Command:
 
             for backup_name in [collection for collection in self.database.collection_names(False) if '_backup' in collection]:
                 collection_name = backup_name.replace('_backup', '')
-                self.database[backup_name].aggregate([{'$match': {}},{'$out': collection_name}])
+                self.database[backup_name].aggregate([{'$out': collection_name}])
 
     def process_collection(self, collection, target):
         """Asynchronously process all items in collection via target"""
