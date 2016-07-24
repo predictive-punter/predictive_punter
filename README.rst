@@ -78,4 +78,4 @@ To install all development and test requirements into your current Python enviro
 
 To run the test suite included in the source distribution, execute the tox command from the root directory of the source tree as follows::
 
-    tox -r
+    tox
