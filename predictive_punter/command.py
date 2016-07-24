@@ -1,6 +1,7 @@
 import concurrent.futures
 from datetime import datetime
 from getopt import getopt
+import time
 
 import cache_requests
 from lxml import html
@@ -99,7 +100,17 @@ class Command:
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
 
-            futures = [executor.submit(target, item) for item in collection]
+            def process_item(item, retry_count=0, max_retries=5):
+                try:
+                    return executor.submit(target, item)
+                except RuntimeError:
+                    if retry_count < max_retries:
+                        time.sleep(1)
+                        return process_item(item, retry_count + 1, max_retries)
+                    else:
+                        raise
+
+            futures = [process_item(item) for item in collection]
 
             for future in concurrent.futures.as_completed(futures):
                 if future.exception() is not None:
