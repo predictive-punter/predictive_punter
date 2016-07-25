@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [Unreleased]
+
+### Changed
+- Log the item associated with an exception in process_collection (from @justjasongreen)
+
+
 ## [1.0.0a1] - 2016-07-24
 
 ### Added
@@ -17,5 +23,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Set up project (from @justjasongreen)
 
 
+[Unreleased]: https://github.com/justjasongreen/predictive_punter/compare/1.0.0a1...HEAD
 [1.0.0a1]: https://github.com/justjasongreen/predictive_punter/compare/1.0.0a0...1.0.0a1
 [1.0.0a0]: https://github.com/justjasongreen/predictive_punter/tree/1.0.0a0

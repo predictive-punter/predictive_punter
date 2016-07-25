@@ -126,10 +126,11 @@ class Command:
                         else:
                             raise
 
-                futures = [process_item(item) for item in collection]
+                futures = {process_item(item): item for item in collection}
 
                 for future in concurrent.futures.as_completed(futures):
                     if future.exception() is not None:
+                        logging.critical('An exception occurred while processing {item}'.format(item=futures[future]))
                         raise future.exception()
 
     def process_dates(self, date_from, date_to):
