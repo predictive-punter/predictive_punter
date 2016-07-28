@@ -53,3 +53,16 @@ def get_winning_combinations(self, places):
     return [tuple(combination) for combination in combinations]
 
 racing_data.Race.get_winning_combinations = get_winning_combinations
+
+
+@property
+def win_value(self):
+    """Return the sum of the starting prices of all winning runners less the number of winning runners"""
+    
+    win_value = 0.00
+    for winning_combination in self.get_winning_combinations(1):
+        if winning_combination[0].starting_price is not None:
+            win_value += winning_combination[0].starting_price - 1.00
+    return win_value
+
+racing_data.Race.win_value = win_value

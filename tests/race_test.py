@@ -20,3 +20,13 @@ def test_get_winning_combinations(race):
     for places in range(1, 5):
         winning_combinations = race.get_winning_combinations(places)
         assert winning_combinations[0] == tuple([results[index] for index in range(places)])
+
+
+def test_win_value(race):
+    """The win_value property should return the sum of the starting prices of each winner less the number of winners"""
+
+    expected_value = 0.00
+    for combination in race.get_winning_combinations(1):
+        expected_value += combination[0].starting_price - 1.00
+
+    assert race.win_value == expected_value
