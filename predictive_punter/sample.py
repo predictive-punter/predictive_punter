@@ -28,7 +28,7 @@ class Sample(racing_data.Entity):
         if runner.result is not None:
             all_results = [runner.result] + [other_runner.result for other_runner in runner.race.active_runners if other_runner['_id'] != runner['_id'] and other_runner.result is not None]
             try:
-                regression_result = sklearn.preprocessing.normalize(numpy.array(all_results).reshape(-1,1))[0,0]
+                regression_result = sklearn.preprocessing.normalize(numpy.array(all_results).reshape(1,-1))[0,0]
             except BaseException:
                 pass
 
