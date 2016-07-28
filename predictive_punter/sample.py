@@ -42,6 +42,23 @@ class Sample(racing_data.Entity):
         }
 
     @property
+    def fixed_query_data(self):
+        """Impute and normalize the raw query data alongside the raw query data for all other active runners in the race"""
+
+        if self['fixed_query_data'] is None:
+            
+            all_query_data = numpy.asarray([self['raw_query_data']] + [runner.sample['raw_query_data'] for runner in self.runner.race.active_runners if runner['_id'] != self.runner['_id']])
+
+            imputer = sklearn.preprocessing.Imputer(missing_values='NaN', strategy='median', axis=0)
+            imputed_query_data = imputer.fit_transform(all_query_data)
+
+            self['fixed_query_data'] = sklearn.preprocessing.normalize(imputed_query_data, axis=0).tolist()[0]
+
+            self.provider.save(self)
+
+        return self['fixed_query_data']
+
+    @property
     def has_expired(self):
         """Expire samples sourced from an incompatible predictor version"""
 
