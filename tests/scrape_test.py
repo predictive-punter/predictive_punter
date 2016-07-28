@@ -1,21 +1,5 @@
 import predictive_punter
-import pymongo
 import pytest
-
-
-@pytest.fixture(scope='module')
-def database(database_uri):
-
-    database_name = database_uri.split('/')[-1]
-    database_client = pymongo.MongoClient(database_uri)
-    database_client.drop_database(database_name)
-    return database_client.get_default_database()
-
-
-@pytest.fixture(scope='module')
-def database_uri():
-
-    return 'mongodb://localhost:27017/predictive_punter_test'
 
 
 @pytest.fixture(scope='module')
