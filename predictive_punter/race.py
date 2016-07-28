@@ -94,3 +94,12 @@ def trifecta_value(self):
     return self.calculate_value(3)
 
 racing_data.Race.trifecta_value = trifecta_value
+
+
+@property
+def first_four_value(self):
+    """Return the sum of the products of the starting prices of the first, second, third and fourth placed runners in all winning combinations, less the number of winning combinations"""
+    
+    return self.calculate_value(4)
+
+racing_data.Race.first_four_value = first_four_value

@@ -53,3 +53,9 @@ def test_trifecta_value(race):
     """The trifecta_value property should return the sum of the products of the starting prices for the first, second and third placed runners in each winning combination, less the number of winning combinations"""
 
     assert race.trifecta_value == calculate_value(race, 3)
+
+
+def test_first_four_value(race):
+    """The first_four_value property should return the sum of the products of the starting prices for the first, second, third and fourth placed runners in each winning combination, less the number of winning combinations"""
+
+    assert race.first_four_value == calculate_value(race, 4)
