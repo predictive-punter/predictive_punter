@@ -16,45 +16,47 @@ racing_data.Race.active_runners = active_runners
 def get_winning_combinations(self, places):
     """Return a list of tuples of Runners representing all winning combinations for the specified number of places"""
 
-    def get_combinations(results):
+    if len(self.runners) >= places:
 
-        if len(results) > 0:
+        def get_combinations(results):
 
-            combinations = []
+            if len(results) > 0:
 
-            next_combinations = get_combinations(results[1:])
-            for item in results[0]:
-                if next_combinations is None:
-                    combinations.append([item])
-                else:
-                    for next_combination in next_combinations:
-                        combinations.append([item] + next_combination)
+                combinations = []
 
-            return combinations
+                next_combinations = get_combinations(results[1:])
+                for item in results[0]:
+                    if next_combinations is None:
+                        combinations.append([item])
+                    else:
+                        for next_combination in next_combinations:
+                            combinations.append([item] + next_combination)
 
-    results = []
-    for count in range(places):
-        results.append([])
+                return combinations
 
-    for runner in self.active_runners:
-        if runner.result is not None and runner.result <= len(results):
-            results[runner.result - 1].append(runner)
+        results = []
+        for count in range(places):
+            results.append([])
 
-    for index in range(len(results) - 1):
-        if len(results[index + 1]) < 1:
-            results[index + 1] = list(*results[index])
+        for runner in self.active_runners:
+            if runner.result is not None and runner.result <= len(results):
+                results[runner.result - 1].append(runner)
 
-    combinations = get_combinations(results)
-    dupes = []
-    for index in range(len(combinations)):
-        for item in combinations[index]:
-            if len([combo_item for combo_item in combinations[index] if combo_item == item]) > 1:
-                dupes.append(index)
-                break
-    for index in sorted(dupes, reverse=True):
-        combinations.removeAt(index)
+        for index in range(len(results) - 1):
+            if len(results[index + 1]) < 1:
+                results[index + 1] = list(*results[index])
 
-    return [tuple(combination) for combination in combinations]
+        combinations = get_combinations(results)
+        dupes = []
+        for index in range(len(combinations)):
+            for item in combinations[index]:
+                if len([combo_item for combo_item in combinations[index] if combo_item == item]) > 1:
+                    dupes.append(index)
+                    break
+        for index in sorted(dupes, reverse=True):
+            combinations.removeAt(index)
+
+        return [tuple(combination) for combination in combinations]
 
 racing_data.Race.get_winning_combinations = get_winning_combinations
 
@@ -63,11 +65,15 @@ def calculate_value(self, places):
     """Return the value of the winning combinations with the specified number of places for the race"""
 
     value = 0.00
-    for combination in self.get_winning_combinations(places):
-        combination_value = 1.00
-        for runner in combination:
-            combination_value *= runner.starting_price
-        value += combination_value - 1.00
+
+    combinations = self.get_winning_combinations(places)
+    if combinations is not None:
+        for combination in combinations:
+            combination_value = 1.00
+            for runner in combination:
+                combination_value *= runner.starting_price
+            value += combination_value - 1.00
+
     return value
 
 racing_data.Race.calculate_value = calculate_value
