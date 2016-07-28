@@ -30,3 +30,18 @@ def test_win_value(race):
         expected_value += combination[0].starting_price - 1.00
 
     assert race.win_value == expected_value
+
+
+def test_exacta_value(race):
+    """The exacta_value property should return the sum of the products of the starting prices for the first and second placed horses in each winning combination, less the number of winning combinations"""
+
+    expected_value = 0.00
+
+    combinations = race.get_winning_combinations(2)
+    for combination in combinations:
+        combination_value = 1.00
+        for runner in combination:
+            combination_value *= runner.starting_price
+        expected_value += combination_value - 1.00
+
+    assert race.exacta_value == expected_value

@@ -66,3 +66,18 @@ def win_value(self):
     return win_value
 
 racing_data.Race.win_value = win_value
+
+
+@property
+def exacta_value(self):
+    """Return the sum of the products of the starting prices of first and second placed runners in all winning combinations, less the number of winning combinations"""
+
+    exacta_value = 0.00
+    for combination in self.get_winning_combinations(2):
+        combination_value = 1.00
+        for runner in combination:
+            combination_value *= runner.starting_price
+        exacta_value += combination_value - 1.00
+    return exacta_value
+
+racing_data.Race.exacta_value = exacta_value
