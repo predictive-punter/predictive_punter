@@ -40,6 +40,10 @@ def get_winning_combinations(self, places):
         if runner.result is not None and runner.result <= len(results):
             results[runner.result - 1].append(runner)
 
+    for index in range(len(results) - 1):
+        if len(results[index + 1]) < 1:
+            results[index + 1] = list(*results[index])
+
     combinations = get_combinations(results)
     dupes = []
     for index in range(len(combinations)):
