@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import cache_requests
 from lxml import html
+import predictive_punter
 import punters_client
 import pymongo
 import pytest
-import racing_data
 import redis
 import requests
 
@@ -41,7 +41,7 @@ def provider(database):
 
     scraper = punters_client.Scraper(http_client, html_parser)
 
-    return racing_data.Provider(database, scraper)
+    return predictive_punter.Provider(database, scraper)
 
 
 @pytest.fixture(scope='session')
@@ -63,3 +63,16 @@ def runner(race):
         if runner['number'] == 1:
 
             return runner
+
+
+@pytest.fixture(scope='session')
+def sample(provider, runner):
+
+    return provider.get_sample_by_runner(runner)
+
+
+@pytest.fixture(scope='session')
+def future_race(provider):
+
+    meet = provider.get_meets_by_date(datetime.now() + timedelta(days=1))[0]
+    return meet.races[0]
