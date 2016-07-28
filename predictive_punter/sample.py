@@ -46,3 +46,9 @@ class Sample(racing_data.Entity):
         """Expire samples sourced from an incompatible predictor version"""
 
         return self['predictor_version'].split('.')[0] != __version__.split('.')[0]
+
+    @property
+    def runner(self):
+        """Return the runner associated with this sample"""
+
+        return self.get_cached_property('runner', self.provider.get_runner_by_sample, self)
