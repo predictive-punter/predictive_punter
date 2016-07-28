@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Extend racing_data.Runner objects with a calculate_expected_times method (from @justjasongreen)
+
 ### Changed
 - Log the item associated with an exception in process_collection (from @justjasongreen)
 
