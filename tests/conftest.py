@@ -45,7 +45,7 @@ def provider(database):
 
 
 @pytest.fixture(scope='session')
-def runner(provider):
+def race(provider):
 
     for meet in provider.get_meets_by_date(datetime(2016, 2, 1)):
         if meet['track'] == 'Kilmore':
@@ -53,7 +53,13 @@ def runner(provider):
             for race in meet.races:
                 if race['number'] == 5:
 
-                    for runner in race.runners:
-                        if runner['number'] == 1:
+                    return race
 
-                            return runner
+
+@pytest.fixture(scope='session')
+def runner(race):
+
+    for runner in race.runners:
+        if runner['number'] == 1:
+
+            return runner

@@ -8,6 +8,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Extend racing_data.Race objects with an active_runners property (from @justjasongreen)
+- Extend racing_data.Race objects with a get_winning_combinations method (from @justjasongreen)
+- Extend racing_data.Race objects with a win_value property (from @justjasongreen)
+- Extend racing_data.Race objects with an exacta_value property (from @justjasongreen)
+- Extend racing_data.Race objects with a trifecta_value property (from @justjasongreen)
+- Extend racing_data.Race objects with a first_four_value property (from @justjasongreen)
+- Extend racing_data.Race objects with a total_value property (from @justjasongreen)
 - Extend racing_data.Runner objects with a calculate_expected_times method (from @justjasongreen)
 - Extend racing_data.Runner objects with a races_per_year property (from @justjasongreen)
 
