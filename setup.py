@@ -38,11 +38,14 @@ setup(
     install_requires=[
         'cache_requests',
         'lxml',
+        'numpy',
         'punters_client',
         'pymongo',
         'racing_data',
         'redis',
-        'requests'
+        'requests',
+        'scikit-learn',
+        'scipy'
     ],
     extras_require={
         'dev':  [
