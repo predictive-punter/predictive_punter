@@ -107,3 +107,16 @@ def first_four_value(self):
     return self.calculate_value(4)
 
 racing_data.Race.first_four_value = first_four_value
+
+
+@property
+def total_value(self):
+    """Return the sum of the win, exacta, trifecta and first four values for this race"""
+    
+    total_value = 0.0
+    for value in (self.win_value, self.exacta_value, self.trifecta_value, self.first_four_value):
+        if value is not None:
+            total_value += value
+    return total_value
+
+racing_data.Race.total_value = total_value
