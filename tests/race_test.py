@@ -1,3 +1,18 @@
+def calculate_value(race, places):
+    """Calculate the value of the race for the winning combination with the specified number of places"""
+
+    value = 0.00
+
+    combinations = race.get_winning_combinations(places)
+    for combination in combinations:
+        combination_value = 1.00
+        for runner in combination:
+            combination_value *= runner.starting_price
+        value += combination_value - 1.00
+
+    return value
+
+
 def test_active_runners(race):
     """The active_runners property should return a list containing all non-scratched runners in the race"""
 
@@ -25,23 +40,16 @@ def test_get_winning_combinations(race):
 def test_win_value(race):
     """The win_value property should return the sum of the starting prices of each winner less the number of winners"""
 
-    expected_value = 0.00
-    for combination in race.get_winning_combinations(1):
-        expected_value += combination[0].starting_price - 1.00
-
-    assert race.win_value == expected_value
+    assert race.win_value == calculate_value(race, 1)
 
 
 def test_exacta_value(race):
-    """The exacta_value property should return the sum of the products of the starting prices for the first and second placed horses in each winning combination, less the number of winning combinations"""
+    """The exacta_value property should return the sum of the products of the starting prices for the first and second placed runners in each winning combination, less the number of winning combinations"""
 
-    expected_value = 0.00
+    assert race.exacta_value == calculate_value(race, 2)
 
-    combinations = race.get_winning_combinations(2)
-    for combination in combinations:
-        combination_value = 1.00
-        for runner in combination:
-            combination_value *= runner.starting_price
-        expected_value += combination_value - 1.00
 
-    assert race.exacta_value == expected_value
+def test_trifecta_value(race):
+    """The trifecta_value property should return the sum of the products of the starting prices for the first, second and third placed runners in each winning combination, less the number of winning combinations"""
+
+    assert race.trifecta_value == calculate_value(race, 3)

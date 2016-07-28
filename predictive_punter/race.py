@@ -55,15 +55,25 @@ def get_winning_combinations(self, places):
 racing_data.Race.get_winning_combinations = get_winning_combinations
 
 
+def calculate_value(self, places):
+    """Return the value of the winning combinations with the specified number of places for the race"""
+
+    value = 0.00
+    for combination in self.get_winning_combinations(places):
+        combination_value = 1.00
+        for runner in combination:
+            combination_value *= runner.starting_price
+        value += combination_value - 1.00
+    return value
+
+racing_data.Race.calculate_value = calculate_value
+
+
 @property
 def win_value(self):
     """Return the sum of the starting prices of all winning runners less the number of winning runners"""
     
-    win_value = 0.00
-    for winning_combination in self.get_winning_combinations(1):
-        if winning_combination[0].starting_price is not None:
-            win_value += winning_combination[0].starting_price - 1.00
-    return win_value
+    return self.calculate_value(1)
 
 racing_data.Race.win_value = win_value
 
@@ -71,13 +81,16 @@ racing_data.Race.win_value = win_value
 @property
 def exacta_value(self):
     """Return the sum of the products of the starting prices of first and second placed runners in all winning combinations, less the number of winning combinations"""
-
-    exacta_value = 0.00
-    for combination in self.get_winning_combinations(2):
-        combination_value = 1.00
-        for runner in combination:
-            combination_value *= runner.starting_price
-        exacta_value += combination_value - 1.00
-    return exacta_value
+    
+    return self.calculate_value(2)
 
 racing_data.Race.exacta_value = exacta_value
+
+
+@property
+def trifecta_value(self):
+    """Return the sum of the products of the starting prices of first, second and third placed runners in all winning combinations, less the number of winning combinations"""
+    
+    return self.calculate_value(3)
+
+racing_data.Race.trifecta_value = trifecta_value
