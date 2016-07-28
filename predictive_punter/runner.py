@@ -20,3 +20,12 @@ def races_per_year(self):
     return self.career.starts / self.age
 
 racing_data.Runner.races_per_year = races_per_year
+
+
+@property
+def sample(self):
+    """Return the sample for this runner"""
+
+    return self.get_cached_property('sample', self.provider.get_sample_by_runner, self)
+
+racing_data.Runner.sample = sample

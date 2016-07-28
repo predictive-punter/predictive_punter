@@ -10,3 +10,9 @@ def test_races_per_year(runner):
     """The races_per_year property should return the total career starts divded by the horse's age as at the race date"""
 
     assert runner.races_per_year == runner.career.starts / runner.age
+
+
+def test_sample(runner, sample):
+    """The sample property should return the sample for the runner"""
+
+    assert runner.sample['_id'] == sample['_id']
