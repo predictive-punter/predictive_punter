@@ -1,3 +1,5 @@
+import threading
+
 import numpy
 import racing_data
 import sklearn.preprocessing
@@ -7,6 +9,8 @@ from . import __version__
 
 class Sample(racing_data.Entity):
     """A sample represents a single row of query data for a predictor"""
+
+    normalizer_locks = dict()
 
     @classmethod
     def generate_sample(cls, runner):
@@ -34,12 +38,57 @@ class Sample(racing_data.Entity):
 
         return {
             'raw_query_data':           raw_query_data,
-            'fixed_query_data':         None,
+            'imputed_query_data':       None,
+            'normalized_query_data':    None,
             'regression_result':        regression_result,
             'classification_result':    runner.result if runner.result is not None and 1 <= runner.result <= 4 else 5,
             'weight':                   runner.race.total_value,
             'predictor_version':        __version__
         }
+
+    @classmethod
+    def get_normalizer_lock(cls, race):
+        """Get the normalizer lock for the specified race"""
+
+        if race['_id'] not in cls.normalizer_locks:
+            cls.normalizer_locks[race['_id']] = threading.RLock()
+
+        return cls.normalizer_locks[race['_id']]
+
+    @property
+    def imputed_query_data(self):
+        """Impute the raw query data alongside the raw query data for all other active runners in the race"""
+
+        if self['imputed_query_data'] is None:
+
+            all_query_data = [list(self['raw_query_data'])] + [runner.sample['raw_query_data'] for runner in self.runner.race.active_runners if runner['_id'] != self.runner['_id']]
+
+            for index in range(len(all_query_data[0])):
+                if all_query_data[0][index] is None:
+                    other_values = [value[index] for value in all_query_data[1:] if value[index] is not None]
+                    if len(other_values) > 0:
+                        all_query_data[0][index] = sum(other_values) / len(other_values)
+                    else:
+                        all_query_data[0][index] = 0.0
+
+            self['imputed_query_data'] = all_query_data[0]
+            self.provider.save(self)
+
+        return self['imputed_query_data']
+
+    @property
+    def normalized_query_data(self):
+        """Normalize the imputed query data alongside the imputed query data for all other active runners in the race"""
+
+        with self.get_normalizer_lock(self.runner.race):
+
+            if self['normalized_query_data'] is None:
+                
+                all_query_data = numpy.asarray([self.imputed_query_data] + [runner.sample.imputed_query_data for runner in self.runner.race.active_runners if runner['_id'] != self.runner['_id']])
+                self['normalized_query_data'] = sklearn.preprocessing.normalize(all_query_data, axis=0).tolist()[0]
+                self.provider.save(self)
+
+            return self['normalized_query_data']
 
     @property
     def has_expired(self):
