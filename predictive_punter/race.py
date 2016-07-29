@@ -32,6 +32,15 @@ def get_winning_combinations(self, places):
                         for next_combination in next_combinations:
                             combinations.append([item] + next_combination)
 
+                dupes = []
+                for index in range(len(combinations)):
+                    for item in combinations[index]:
+                        if len([combo_item for combo_item in combinations[index] if combo_item == item]) > 1:
+                            dupes.append(index)
+                            break
+                for index in sorted(dupes, reverse=True):
+                    del combinations[index]
+
                 return combinations
 
         results = []
@@ -44,19 +53,9 @@ def get_winning_combinations(self, places):
 
         for index in range(len(results) - 1):
             if len(results[index + 1]) < 1:
-                results[index + 1] = list(*results[index])
+                results[index + 1] = list(results[index])
 
-        combinations = get_combinations(results)
-        dupes = []
-        for index in range(len(combinations)):
-            for item in combinations[index]:
-                if len([combo_item for combo_item in combinations[index] if combo_item == item]) > 1:
-                    dupes.append(index)
-                    break
-        for index in sorted(dupes, reverse=True):
-            combinations.removeAt(index)
-
-        return [tuple(combination) for combination in combinations]
+        return [tuple(combination) for combination in get_combinations(results)]
 
 racing_data.Race.get_winning_combinations = get_winning_combinations
 

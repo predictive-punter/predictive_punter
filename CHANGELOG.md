@@ -20,6 +20,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Add the Sample class (from @justjasongreen)
 - Implement Provider.get_sample_by_runner method (from @justjasongreen)
 - Extend racing_data.Race objects with a sample property (from @justjasongreen)
+- Implement seed command line utility (from @justjasongreen)
 
 ### Changed
 - Log the item associated with an exception in process_collection (from @justjasongreen)
