@@ -70,7 +70,8 @@ def calculate_value(self, places):
         for combination in combinations:
             combination_value = 1.00
             for runner in combination:
-                combination_value *= runner.starting_price
+                if runner.starting_price is not None:
+                    combination_value *= runner.starting_price
             value += combination_value - 1.00
 
     return value
