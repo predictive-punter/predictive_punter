@@ -22,7 +22,8 @@ def test_expected_values(runner):
 
     expected_values = {
         'raw_query_data':           raw_query_data,
-        'fixed_query_data':         None,
+        'imputed_query_data':       None,
+        'normalized_query_data':    None,
         'regression_result':        sklearn.preprocessing.normalize(numpy.array(all_results).reshape(1, -1))[0, 0],
         'classification_result':    runner.result if runner.result is not None and 1 <= runner.result <= 4 else 5,
         'weight':                   runner.race.total_value,
