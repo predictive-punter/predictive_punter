@@ -18,4 +18,4 @@ class SeedCommand(Command):
 def main():
     """Main entry point for seed console script"""
 
-    ScrapeCommand.main(sys.argv[1:])
+    SeedCommand.main(sys.argv[1:])
