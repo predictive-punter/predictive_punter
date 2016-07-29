@@ -12,7 +12,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='predictive_punter',
-    version='1.0.0a1',
+    version='1.0.0a2',
     description='Applying predictive analytics to horse racing via Python',
     long_description=long_description,
     keywords='predictive analytics horse racing',
