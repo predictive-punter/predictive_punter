@@ -8,10 +8,10 @@ import cache_requests
 from lxml import html
 import punters_client
 import pymongo
-import racing_data
 import redis
 import requests
 
+from . import Provider
 from .date_utils import *
 from .profiling_utils import *
 
@@ -87,7 +87,7 @@ class Command:
 
         scraper = punters_client.Scraper(http_client, html_parser)
         
-        self.provider = racing_data.Provider(self.database, scraper)
+        self.provider = Provider(self.database, scraper)
 
     def backup_database(self):
         """Backup the database if backup_database is available"""
