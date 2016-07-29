@@ -8,7 +8,7 @@ def calculate_expected_times(self, performance_list_name):
         if momentum is not None:
             return self.actual_distance / (momentum / self.actual_weight)
     
-    return tuple([calculate_expected_time(momentum) for momentum in getattr(self, performance_list_name).momentums])
+    return tuple([calculate_expected_time(momentum) for momentum in getattr(self, performance_list_name).momentums]) if self.actual_distance is not None else tuple([None, None, None])
 
 racing_data.Runner.calculate_expected_times = calculate_expected_times
 
@@ -17,7 +17,8 @@ racing_data.Runner.calculate_expected_times = calculate_expected_times
 def races_per_year(self):
     """Return total number of career starts for the horse divded by the horse's age as at the race date"""
 
-    return self.career.starts / self.age
+    if self.age is not None and self.age > 0:
+        return self.career.starts / self.age
 
 racing_data.Runner.races_per_year = races_per_year
 
