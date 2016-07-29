@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 
-## [Unreleased]
+## [1.0.0a2] - 2016-07-29
 
 ### Added
 - Extend racing_data.Race objects with an active_runners property (from @justjasongreen)
@@ -38,6 +38,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Set up project (from @justjasongreen)
 
 
-[Unreleased]: https://github.com/justjasongreen/predictive_punter/compare/1.0.0a1...HEAD
+[1.0.0a2]: https://github.com/justjasongreen/predictive_punter/compare/1.0.0a1...1.0.0a2
 [1.0.0a1]: https://github.com/justjasongreen/predictive_punter/compare/1.0.0a0...1.0.0a1
 [1.0.0a0]: https://github.com/justjasongreen/predictive_punter/tree/1.0.0a0
