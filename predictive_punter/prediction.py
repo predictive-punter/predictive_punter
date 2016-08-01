@@ -2,7 +2,7 @@ import threading
 
 import numpy
 import racing_data
-from sklearn import cross_validation, ensemble, linear_model, svm, tree
+from sklearn import cross_validation, ensemble, linear_model, metrics, svm, tree
 
 from . import __version__
 from .profiling_utils import log_time
@@ -74,7 +74,7 @@ class Prediction(racing_data.Entity):
 
                         message = 'training {estimator_type} for {race}'.format(estimator_type=estimator_type.__name__, race=race)
                         estimator = log_time(message, cls.generate_estimator, estimator_type, train_X, train_y, test_X, test_y)
-                        if estimator is not None and (cls.predictor_cache[race.similar_races_hash] is None or estimator[1] > cls.predictor_cache[race.similar_races_hash][1]):
+                        if estimator is not None and (cls.predictor_cache[race.similar_races_hash] is None or estimator[1] < cls.predictor_cache[race.similar_races_hash][1]):
                             cls.predictor_cache[race.similar_races_hash] = estimator
 
             return cls.predictor_cache[race.similar_races_hash]
@@ -86,7 +86,7 @@ class Prediction(racing_data.Entity):
         try:
             estimator = estimator_type()
             estimator.fit(train_X, train_y)
-            score = estimator.score(test_X, test_y) * len(test_X)
+            score = metrics.mean_squared_error(test_y, estimator.predict(test_X))
             return estimator, score
         except BaseException:
             return None
