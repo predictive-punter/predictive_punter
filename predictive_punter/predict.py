@@ -25,10 +25,7 @@ class PredictCommand(Command):
             '3rd',
             '4th',
             'Estimator',
-            'Weighted',
-            'Score',
-            'Train Samples',
-            'Test Samples'
+            'Score'
             ])
 
     def process_date(self, date):
@@ -36,35 +33,30 @@ class PredictCommand(Command):
 
         super().process_date(date)
 
-        Prediction.estimator_cache.clear()
-        Prediction.estimator_locks.clear()
+        Prediction.predictor_cache.clear()
+        Prediction.predictor_locks.clear()
     
     def process_race(self, race):
         """Extend the process_race method to generate a sample if necessary"""
 
         super().process_race(race)
 
-        for prediction in race.predictions:
+        row = [
+            race.meet['date'].astimezone(self.provider.local_timezone).date(),
+            race.meet['track'],
+            race['number'],
+            race['start_time'].astimezone(self.provider.local_timezone).time(),
+        ]
 
-            row = [
-                race.meet['date'].astimezone(self.provider.local_timezone).date(),
-                race.meet['track'],
-                race['number'],
-                race['start_time'].astimezone(self.provider.local_timezone).time(),
-            ]
+        for place in range(4):
+            row.append(','.join([str(value) for value in sorted(race.prediction['picks'][place])]) if len(race.prediction['picks'][place]) > 0 else None)
 
-            for place in range(4):
-                row.append(','.join([str(value) for value in sorted(prediction['picks'][place])]) if len(prediction['picks'][place]) > 0 else None)
+        row.extend([
+            race.prediction['estimator_type'],
+            race.prediction['score']
+            ])
 
-            row.extend([
-                prediction['estimator_type'],
-                prediction['use_sample_weights'],
-                prediction['score'],
-                prediction['train_samples'],
-                prediction['test_samples']
-                ])
-
-            self.write_row(row)
+        self.write_row(row)
 
     def write_row(self, row):
         """Write the specified row to output"""

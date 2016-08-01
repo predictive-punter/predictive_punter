@@ -21,10 +21,10 @@ class Provider(racing_data.Provider):
 
         return database_indexes
 
-    def get_predictions_by_race(self, race):
-        """Get predictions for the specified race"""
+    def get_prediction_by_race(self, race):
+        """Get the prediction for the specified race"""
 
-        return self.find_or_create(Prediction, {'race_id': race['_id']}, {'race': race}, Prediction.generate_predictions, race)
+        return self.find_or_create_one(Prediction, {'race_id': race['_id']}, {'race': race}, race['updated_at'], Prediction.generate_prediction, race)
 
     def get_race_by_prediction(self, prediction):
         """Get the race associated with the specified prediction"""
