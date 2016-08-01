@@ -126,3 +126,30 @@ def total_value(self):
     return total_value
 
 racing_data.Race.total_value = total_value
+
+
+@property
+def prediction(self):
+    """Return the best prediction for this race"""
+
+    return self.get_cached_property('prediction', self.provider.get_prediction_by_race, self)
+
+racing_data.Race.prediction = prediction
+
+
+@property
+def similar_races_hash(self):
+    """Return a hash of the similar races criteria"""
+
+    return hash(tuple(self['entry_conditions'] + [self.meet['date'], self['group'], self['track_condition']]))
+
+racing_data.Race.similar_races_hash = similar_races_hash
+
+
+@property
+def similar_races(self):
+    """Return a list of prior similar races"""
+
+    return self.get_cached_property('similar_races', self.provider.get_similar_races, self)
+
+racing_data.Race.similar_races = similar_races
