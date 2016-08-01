@@ -44,7 +44,7 @@ class PredictCommand(Command):
 
         super().process_race(race)
 
-        if race.prediction is not None:
+        for prediction in race.predictions:
 
             row = [
                 race.meet['date'].astimezone(self.provider.local_timezone).date(),
@@ -54,14 +54,14 @@ class PredictCommand(Command):
             ]
 
             for place in range(4):
-                row.append(','.join([str(value) for value in sorted(race.prediction['picks'][place])]) if len(race.prediction['picks'][place]) > 0 else None)
+                row.append(','.join([str(value) for value in sorted(prediction['picks'][place])]) if len(prediction['picks'][place]) > 0 else None)
 
             row.extend([
-                race.prediction['estimator_type'],
-                race.prediction['use_sample_weights'],
-                race.prediction['score'],
-                race.prediction['train_samples'],
-                race.prediction['test_samples']
+                prediction['estimator_type'],
+                prediction['use_sample_weights'],
+                prediction['score'],
+                prediction['train_samples'],
+                prediction['test_samples']
                 ])
 
             self.write_row(row)

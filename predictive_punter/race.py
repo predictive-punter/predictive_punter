@@ -129,12 +129,12 @@ racing_data.Race.total_value = total_value
 
 
 @property
-def prediction(self):
-    """Return the best prediction for this race"""
+def predictions(self):
+    """Return a list of predictions for this race"""
 
-    return self.get_cached_property('prediction', self.provider.get_prediction_by_race, self)
+    return self.get_cached_property('predictions', self.provider.get_predictions_by_race, self)
 
-racing_data.Race.prediction = prediction
+racing_data.Race.predictions = predictions
 
 
 @property
