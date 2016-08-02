@@ -12,7 +12,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='predictive_punter',
-    version='1.0.0a4',
+    version='1.0.0a5',
     description='Applying predictive analytics to horse racing via Python',
     long_description=long_description,
     keywords='predictive analytics horse racing',
@@ -63,7 +63,8 @@ setup(
     entry_points={
         'console_scripts':  [
             'scrape=predictive_punter.scrape:main',
-            'seed=predictive_punter.seed:main'
+            'seed=predictive_punter.seed:main',
+            'simulate=predictive_punter.simulate:main'
         ]
     }
     )

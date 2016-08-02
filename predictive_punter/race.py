@@ -1,5 +1,7 @@
 import racing_data
 
+from .combination_utils import get_combinations
+
 
 @property
 def active_runners(self):
@@ -17,31 +19,6 @@ def get_winning_combinations(self, places):
     """Return a list of tuples of Runners representing all winning combinations for the specified number of places"""
 
     if len(self.runners) >= places:
-
-        def get_combinations(results):
-
-            if len(results) > 0:
-
-                combinations = []
-
-                next_combinations = get_combinations(results[1:])
-                for item in results[0]:
-                    if next_combinations is None:
-                        combinations.append([item])
-                    else:
-                        for next_combination in next_combinations:
-                            combinations.append([item] + next_combination)
-
-                dupes = []
-                for index in range(len(combinations)):
-                    for item in combinations[index]:
-                        if len([combo_item for combo_item in combinations[index] if combo_item == item]) > 1:
-                            dupes.append(index)
-                            break
-                for index in sorted(dupes, reverse=True):
-                    del combinations[index]
-
-                return combinations
 
         results = []
         for count in range(places):
@@ -72,7 +49,7 @@ def calculate_value(self, places):
             for runner in combination:
                 if runner.starting_price is not None:
                     combination_value *= runner.starting_price
-            value += combination_value - 1.00
+            value += combination_value
 
     return value
 
@@ -126,3 +103,21 @@ def total_value(self):
     return total_value
 
 racing_data.Race.total_value = total_value
+
+
+@property
+def predictions(self):
+    """Return all predictions for this race"""
+
+    return self.get_cached_property('predictions', self.provider.get_predictions_by_race, self)
+
+racing_data.Race.predictions = predictions
+
+
+@property
+def similar_races_hash(self):
+    """Return a hash of the race values relevant to finding similar races"""
+
+    return hash(tuple(self['entry_conditions'] + [self['group'], self['track_condition']]))
+
+racing_data.Race.similar_races_hash = similar_races_hash
