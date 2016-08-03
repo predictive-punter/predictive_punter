@@ -26,6 +26,13 @@ class Provider(racing_data.Provider):
 
         return database_indexes
 
+    def delete(self, entity):
+        """Delete the specified entity from the database"""
+
+        if '_id' in entity and entity['_id'] is not None:
+            self.get_database_collection(entity.__class__).delete_one({'_id': entity['_id']})
+            del entity['_id']
+
     def get_predictions_by_race(self, race):
         """Get a list of predictions for the specified race"""
 

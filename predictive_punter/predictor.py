@@ -4,19 +4,24 @@ import threading
 
 import numpy
 import racing_data
-from sklearn import linear_model
+from sklearn import grid_search, linear_model
 
 
 class Predictor(racing_data.Entity):
     """A predictor wraps a scikit-learn estimator in a persistence framework"""
 
-    CLASSIFICATION_TYPES = (
-        linear_model.SGDClassifier,
-        )
+    CLASSIFICATION_PARAMS = {
+        'class_weight': ['balanced', None],
+        'loss':         ['hinge', 'log', 'modified_huber', 'perceptron', 'squared_hinge'],
+        'penalty':      ['elasticnet', 'l1', 'l2', 'none']
+    }
+    CLASSIFICATION_PARAM_GRID = list(grid_search.ParameterGrid(CLASSIFICATION_PARAMS))
 
-    REGRESSION_TYPES = (
-        linear_model.SGDRegressor,
-        )
+    REGRESSION_PARAMS = {
+        'loss':     ['epsilon_insensitive', 'huber', 'squared_epsilon_insensitive', 'squared_loss'],
+        'penalty':  ['elasticnet', 'l1', 'l2', 'none']
+    }
+    REGRESSION_PARAM_GRID = list(grid_search.ParameterGrid(REGRESSION_PARAMS))
 
     predictor_locks = dict()
 
@@ -38,40 +43,47 @@ class Predictor(racing_data.Entity):
             if len(predictors) < 1:
                 predictors = cls.generate_predictors(race)
 
+            last_training_date = None
             for predictor in predictors:
-                if predictor['last_training_date'] is None or predictor['last_training_date'] < race.meet['date']:
+                if predictor['last_training_date'] is not None and (last_training_date is None or predictor['last_training_date'] < last_training_date):
+                    last_training_date = predictor['last_training_date']
 
-                    train_X = list()
-                    train_y = list()
-                    train_weights = list()
+            if last_training_date is None or last_training_date < race.meet['date']:
 
-                    start_time = {'$lt': race.meet['date']}
-                    if predictor['last_training_date'] is not None:
-                        start_time['$gte'] = predictor['last_training_date']
-                    similar_races = predictor.provider.find(racing_data.Race, {'entry_conditions': race['entry_conditions'], 'group': race['group'], 'start_time': start_time, 'track_condition': race['track_condition']}, None)
-                    for similar_race in similar_races:
-                        for active_runner in similar_race.active_runners:
-                            if active_runner.result is not None:
-                                train_X.append(active_runner.sample.normalized_query_data)
-                                if predictor['is_classifier']:
-                                    train_y.append(active_runner.sample['classification_result'])
-                                else:
-                                    train_y.append(active_runner.sample['regression_result'])
-                                train_weights.append(active_runner.sample['weight'])
+                train_X = list()
+                train_y_classification = list()
+                train_y_regression = list()
+                train_weights = list()
 
-                    if len(train_X) > 0:
+                start_time = {'$lt': race.meet['date']}
+                if last_training_date is not None:
+                    start_time['$gte'] = last_training_date
+                similar_races = race.provider.find(racing_data.Race, {'entry_conditions': race['entry_conditions'], 'group': race['group'], 'start_time': start_time, 'track_condition': race['track_condition']}, None)
+                for similar_race in similar_races:
+                    for active_runner in similar_race.active_runners:
+                        if active_runner.result is not None:
+                            train_X.append(active_runner.sample.normalized_query_data)
+                            train_y_classification.append(active_runner.sample['classification_result'])
+                            train_y_regression.append(active_runner.sample['regression_result'])
+                            train_weights.append(active_runner.sample['weight'])
 
-                        train_X = numpy.array(train_X)
-                        train_y = numpy.array(train_y)
-                        train_weights = numpy.array(train_weights)
+                if len(train_X) > 0:
 
+                    train_X = numpy.array(train_X)
+                    train_y_classification = numpy.array(train_y_classification)
+                    train_y_regression = numpy.array(train_y_regression)
+                    train_weights = numpy.array(train_weights)
+
+                    for predictor in predictors:
                         try:
-                            predictor.estimator.fit(train_X, train_y, sample_weight=train_weights if predictor['uses_sample_weights'] else None)
+                            predictor.estimator.fit(train_X, train_y_classification if predictor['is_classifier'] else train_y_regression, sample_weight=train_weights if predictor['uses_sample_weights'] else None)
                         except BaseException:
-                            pass
+                            predictor.delete()
                         else:
                             predictor['last_training_date'] = race.meet['date']
                             predictor.save()
+
+                    predictors[:] = [predictor for predictor in predictors if '_id' in predictor and predictor['_id'] is not None]
 
             return predictors
 
@@ -83,20 +95,26 @@ class Predictor(racing_data.Entity):
 
         for uses_sample_weights in (True, False):
 
-            for estimator_type in cls.CLASSIFICATION_TYPES:
-                predictors.append(cls.generate_predictor(race, estimator_type, True, uses_sample_weights))
+            for estimator_params in cls.CLASSIFICATION_PARAM_GRID:
+                try:
+                    predictors.append(cls.generate_predictor(race, linear_model.SGDClassifier, estimator_params, True, uses_sample_weights))
+                except BaseException:
+                    pass
 
-            for estimator_type in cls.REGRESSION_TYPES:
-                predictors.append(cls.generate_predictor(race, estimator_type, False, uses_sample_weights))
+            for estimator_params in cls.REGRESSION_PARAM_GRID:
+                try:
+                    predictors.append(cls.generate_predictor(race, linear_model.SGDRegressor, estimator_params, False, uses_sample_weights))
+                except BaseException:
+                    pass
 
         return predictors
 
     @classmethod
-    def generate_predictor(cls, race, estimator_type, is_classifier, uses_sample_weights):
+    def generate_predictor(cls, race, estimator_type, estimator_params, is_classifier, uses_sample_weights):
         """Generate and train a predictor of the specified type using the provided training data"""
 
         predictor = Predictor(race.provider, None, is_classifier=is_classifier, last_training_date=None, similar_races_hash=race.similar_races_hash, uses_sample_weights=uses_sample_weights)
-        predictor.estimator = estimator_type(warm_start=True)
+        predictor.estimator = estimator_type(random_state=1, warm_start=True, **estimator_params)
         predictor.save()
 
         return predictor
@@ -108,6 +126,11 @@ class Predictor(racing_data.Entity):
         self.estimator = None
         if 'estimator' in self and self['estimator'] is not None:
             self.estimator = pickle.loads(self['estimator'])
+
+    def delete(self):
+        """Remove this predictor from the database"""
+
+        self.provider.delete(self)
 
     def save(self):
         """Save this predictor to the database"""
