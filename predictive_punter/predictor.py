@@ -70,7 +70,7 @@ class Predictor(racing_data.Entity):
                                 train_y_regression.append(active_runner.sample['regression_result'])
                                 train_weights.append(active_runner.sample['weight'])
 
-                    if len(train_X) > 0 and (len(train_X[0]) > len(train_X) or last_training_date is not None):
+                    if len(train_X) > 0 and (last_training_date is not None or len(train_X) >= len(train_X[0])):
 
                         train_X = numpy.array(train_X)
                         train_y_classification = numpy.array(train_y_classification)
