@@ -76,7 +76,7 @@ class Command:
 
         http_client = None
         try:
-            http_client = cache_requests.Session(connection=redis.fromurl(kwargs['redis_uri']))
+            http_client = cache_requests.Session(connection=redis.from_url(kwargs['redis_uri']))
         except BaseException:
             try:
                 http_client = cache_requests.Session()

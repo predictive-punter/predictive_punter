@@ -23,6 +23,7 @@ class Predictor(racing_data.Entity):
     }
     REGRESSION_PARAM_GRID = list(grid_search.ParameterGrid(REGRESSION_PARAMS))
 
+    predictor_cache = dict()
     predictor_locks = dict()
 
     @classmethod
@@ -39,53 +40,55 @@ class Predictor(racing_data.Entity):
 
         with cls.get_predictor_lock(race):
 
-            predictors = race.provider.find(Predictor, {'similar_races_hash': race.similar_races_hash}, None)
-            if len(predictors) < 1:
-                predictors = cls.generate_predictors(race)
+            if race.similar_races_hash not in cls.predictor_cache:
 
-            last_training_date = None
-            for predictor in predictors:
-                if predictor['last_training_date'] is not None and (last_training_date is None or predictor['last_training_date'] < last_training_date):
-                    last_training_date = predictor['last_training_date']
+                cls.predictor_cache[race.similar_races_hash] = race.provider.find(Predictor, {'similar_races_hash': race.similar_races_hash}, None)
+                if len(cls.predictor_cache[race.similar_races_hash]) < 1:
+                    cls.predictor_cache[race.similar_races_hash] = cls.generate_predictors(race)
 
-            if last_training_date is None or last_training_date < race.meet['date']:
+                last_training_date = None
+                for predictor in cls.predictor_cache[race.similar_races_hash]:
+                    if predictor['last_training_date'] is not None and (last_training_date is None or predictor['last_training_date'] < last_training_date):
+                        last_training_date = predictor['last_training_date']
 
-                train_X = list()
-                train_y_classification = list()
-                train_y_regression = list()
-                train_weights = list()
+                if last_training_date is None or last_training_date < race.meet['date']:
 
-                start_time = {'$lt': race.meet['date']}
-                if last_training_date is not None:
-                    start_time['$gte'] = last_training_date
-                similar_races = race.provider.find(racing_data.Race, {'entry_conditions': race['entry_conditions'], 'group': race['group'], 'start_time': start_time, 'track_condition': race['track_condition']}, None)
-                for similar_race in similar_races:
-                    for active_runner in similar_race.active_runners:
-                        if active_runner.result is not None:
-                            train_X.append(active_runner.sample.normalized_query_data)
-                            train_y_classification.append(active_runner.sample['classification_result'])
-                            train_y_regression.append(active_runner.sample['regression_result'])
-                            train_weights.append(active_runner.sample['weight'])
+                    train_X = list()
+                    train_y_classification = list()
+                    train_y_regression = list()
+                    train_weights = list()
 
-                if len(train_X) > 0:
+                    start_time = {'$lt': race.meet['date']}
+                    if last_training_date is not None:
+                        start_time['$gte'] = last_training_date
+                    similar_races = race.provider.find(racing_data.Race, {'entry_conditions': race['entry_conditions'], 'group': race['group'], 'start_time': start_time, 'track_condition': race['track_condition']}, None)
+                    for similar_race in similar_races:
+                        for active_runner in similar_race.active_runners:
+                            if active_runner.result is not None:
+                                train_X.append(active_runner.sample.normalized_query_data)
+                                train_y_classification.append(active_runner.sample['classification_result'])
+                                train_y_regression.append(active_runner.sample['regression_result'])
+                                train_weights.append(active_runner.sample['weight'])
 
-                    train_X = numpy.array(train_X)
-                    train_y_classification = numpy.array(train_y_classification)
-                    train_y_regression = numpy.array(train_y_regression)
-                    train_weights = numpy.array(train_weights)
+                    if len(train_X) > 0 and (len(train_X[0]) > len(train_X) or last_training_date is not None):
 
-                    for predictor in predictors:
-                        try:
-                            predictor.estimator.fit(train_X, train_y_classification if predictor['is_classifier'] else train_y_regression, sample_weight=train_weights if predictor['uses_sample_weights'] else None)
-                        except BaseException:
-                            predictor.delete()
-                        else:
-                            predictor['last_training_date'] = race.meet['date']
-                            predictor.save()
+                        train_X = numpy.array(train_X)
+                        train_y_classification = numpy.array(train_y_classification)
+                        train_y_regression = numpy.array(train_y_regression)
+                        train_weights = numpy.array(train_weights)
 
-                    predictors[:] = [predictor for predictor in predictors if '_id' in predictor and predictor['_id'] is not None]
+                        for predictor in cls.predictor_cache[race.similar_races_hash]:
+                            try:
+                                predictor.estimator.fit(train_X, train_y_classification if predictor['is_classifier'] else train_y_regression, sample_weight=train_weights if predictor['uses_sample_weights'] else None)
+                            except BaseException:
+                                predictor.delete()
+                            else:
+                                predictor['last_training_date'] = race.meet['date']
+                                predictor.save()
 
-            return predictors
+                        cls.predictor_cache[race.similar_races_hash][:] = [predictor for predictor in cls.predictor_cache[race.similar_races_hash] if '_id' in predictor and predictor['_id'] is not None]
+
+            return cls.predictor_cache[race.similar_races_hash]
 
     @classmethod
     def generate_predictors(cls, race):
