@@ -37,7 +37,7 @@ class Command:
             'date_from':        datetime.now(),
             'date_to':          datetime.now(),
             'logging_level':    logging.INFO,
-            'redis_uri':        'redis://localhost:6379/predictive_punter'
+            'redis_uri':        'redis://localhost:6379/0'
         }
 
         opts, args = getopt(args, 'bd:qr:v', ['backup-database', 'database-uri=', 'quiet', 'redis-uri=', 'verbose'])
