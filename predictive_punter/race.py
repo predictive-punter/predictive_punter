@@ -156,7 +156,7 @@ def best_predictions(self):
                             average_win_value = sum(win_values) / len(win_values)
                             strike_rate = len(win_values) / len(all_values)
                             roi = average_win_value * strike_rate
-                            minimum_dividend = 1.0 / strike_rate
+                            minimum_dividend = len(get_combinations(prediction['picks'][:Prediction.BET_TYPES[bet_type]])) / strike_rate
 
                             if roi > 1.0 and (best_predictions[bet_type] is None or minimum_dividend < best_predictions[bet_type][2]):
                                 best_predictions[bet_type] = prediction, roi, minimum_dividend
