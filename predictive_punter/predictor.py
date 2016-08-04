@@ -70,7 +70,7 @@ class Predictor(racing_data.Entity):
                                 train_y_regression.append(active_runner.sample['regression_result'])
                                 train_weights.append(active_runner.sample['weight'])
 
-                    if len(train_X) > 0 and (last_training_date is not None or len(train_X) >= len(train_X[0])):
+                    if len(train_X) > 0:
 
                         train_X = numpy.array(train_X)
                         train_y_classification = numpy.array(train_y_classification)
@@ -79,7 +79,7 @@ class Predictor(racing_data.Entity):
 
                         for predictor in cls.predictor_cache[race.similar_races_hash]:
                             try:
-                                predictor.estimator.fit(train_X, train_y_classification if predictor['is_classifier'] else train_y_regression, sample_weight=train_weights if predictor['uses_sample_weights'] else None)
+                                predictor.estimator.partial_fit(train_X, train_y_classification if predictor['is_classifier'] else train_y_regression, sample_weight=train_weights if predictor['uses_sample_weights'] else None)
                             except BaseException:
                                 predictor.delete()
                             else:
