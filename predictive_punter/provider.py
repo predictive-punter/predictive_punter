@@ -12,10 +12,11 @@ class Provider(racing_data.Provider):
 
         database_indexes = super().database_indexes
         database_indexes[Prediction] = [
-            [('race_id', 1)]
+            [('race_id', 1)],
+            [('predictor_id', 1), ('start_time', 1)]
         ]
         database_indexes[Predictor] = [
-            [('similar_races_hash', 1)]
+            [('race_entry_conditions', 1), ('race_group', 1), ('race_track_condition', 1)]
         ]
         database_indexes[Sample] = [
             [('runner_id', 1)]

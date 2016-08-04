@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - Implement simulate command line utility (from @justjasongreen)
+- Implement predict command line utility (from @justjasongreen)
 
 
 ## [1.0.0a4] - 2016-07-29

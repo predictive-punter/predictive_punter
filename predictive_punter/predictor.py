@@ -42,7 +42,7 @@ class Predictor(racing_data.Entity):
 
             if race.similar_races_hash not in cls.predictor_cache:
 
-                cls.predictor_cache[race.similar_races_hash] = race.provider.find(Predictor, {'similar_races_hash': race.similar_races_hash}, None)
+                cls.predictor_cache[race.similar_races_hash] = race.provider.find(Predictor, {'race_entry_conditions': race['entry_conditions'], 'race_group': race['group'], 'race_track_condition': race['track_condition']}, None)
                 if len(cls.predictor_cache[race.similar_races_hash]) < 1:
                     cls.predictor_cache[race.similar_races_hash] = cls.generate_predictors(race)
 
@@ -116,7 +116,7 @@ class Predictor(racing_data.Entity):
     def generate_predictor(cls, race, estimator_type, estimator_params, is_classifier, uses_sample_weights):
         """Generate and train a predictor of the specified type using the provided training data"""
 
-        predictor = Predictor(race.provider, None, is_classifier=is_classifier, last_training_date=None, similar_races_hash=race.similar_races_hash, uses_sample_weights=uses_sample_weights)
+        predictor = Predictor(race.provider, None, is_classifier=is_classifier, last_training_date=None, race_entry_conditions=race['entry_conditions'], race_group=race['group'], race_track_condition=race['track_condition'], uses_sample_weights=uses_sample_weights)
         predictor.estimator = estimator_type(random_state=1, warm_start=True, **estimator_params)
         predictor.save()
 

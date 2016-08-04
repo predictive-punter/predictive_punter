@@ -34,7 +34,6 @@ class Prediction(racing_data.Entity):
             'picks':                list(),
             'predictor_id':         predictor['_id'],
             'predictor_version':    __version__,
-            'similar_races_hash':   race.similar_races_hash,
             'start_time':           race['start_time']
         }
 

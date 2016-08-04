@@ -1,5 +1,6 @@
 import racing_data
 
+from . import Prediction
 from .combination_utils import get_combinations
 
 
@@ -121,3 +122,50 @@ def similar_races_hash(self):
     return hash(tuple(self['entry_conditions'] + [self['group'], self['track_condition']]))
 
 racing_data.Race.similar_races_hash = similar_races_hash
+
+
+@property
+def best_predictions(self):
+    """Return a dictionary of the best predictions for this race by bet type"""
+
+    def generate_best_predictions():
+
+        best_predictions = dict()
+        for key in Prediction.BET_TYPES:
+            best_predictions[key] = None
+        best_predictions['multi'] = set()
+
+        for prediction in self.predictions:
+
+            for bet_type in Prediction.BET_TYPES:
+
+                has_bet = True
+                for place in range(Prediction.BET_TYPES[bet_type]):
+                    if len(prediction['picks'][place]) < 1:
+                        has_bet = False
+                        break
+                if has_bet:
+
+                    all_values = [similar_prediction[bet_type + '_value'] for similar_prediction in prediction.provider.find(Prediction, {'predictor_id': prediction['predictor_id'], 'start_time': {'$lt': self.meet['date']}}, None) if similar_prediction[bet_type + '_value'] != 0]
+                    if len(all_values) > 0:
+
+                        win_values = [value for value in all_values if value > 0]
+                        if len(win_values) > 0:
+
+                            average_win_value = sum(win_values) / len(win_values)
+                            strike_rate = len(win_values) / len(all_values)
+                            roi = average_win_value * strike_rate
+
+                            if roi > 1.0 and (best_predictions[bet_type] is None or roi > best_predictions[bet_type][1]):
+                                minimum_dividend = 1.0 / strike_rate
+                                best_predictions[bet_type] = prediction, roi, minimum_dividend
+
+                        if bet_type == 'win' and sum(all_values) > 0:
+                            for number in prediction['picks'][0]:
+                                best_predictions['multi'].add(number)
+
+        return best_predictions
+
+    return self.get_cached_property('best_predictions', generate_best_predictions)
+
+racing_data.Race.best_predictions = best_predictions
