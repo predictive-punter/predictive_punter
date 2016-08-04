@@ -136,6 +136,7 @@ def best_predictions(self):
         best_predictions['multi'] = set()
 
         for prediction in self.predictions:
+            similar_predictions = prediction.provider.find(Prediction, {'predictor_id': prediction['predictor_id'], 'start_time': {'$lt': self.meet['date']}}, None)
 
             for bet_type in Prediction.BET_TYPES:
 
@@ -146,7 +147,7 @@ def best_predictions(self):
                         break
                 if has_bet:
 
-                    all_values = [similar_prediction[bet_type + '_value'] for similar_prediction in prediction.provider.find(Prediction, {'predictor_id': prediction['predictor_id'], 'start_time': {'$lt': self.meet['date']}}, None) if similar_prediction[bet_type + '_value'] != 0]
+                    all_values = [similar_prediction[bet_type + '_value'] for similar_prediction in similar_predictions if similar_prediction[bet_type + '_value'] != 0]
                     if len(all_values) > 0:
 
                         win_values = [value for value in all_values if value > 0]
