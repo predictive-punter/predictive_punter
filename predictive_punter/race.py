@@ -149,21 +149,21 @@ def best_predictions(self):
 
                     all_values = [similar_prediction[bet_type + '_value'] for similar_prediction in similar_predictions if similar_prediction[bet_type + '_value'] != 0]
                     if len(all_values) > 0:
+                        total_value = sum(all_values)
+                        if total_value > 0:
 
-                        win_values = [value for value in all_values if value > 0]
-                        if len(win_values) > 0:
+                            if bet_type == 'win':
+                                for number in prediction['picks'][0]:
+                                    best_predictions['multi'].add(number)
 
-                            average_win_value = sum(win_values) / len(win_values)
-                            strike_rate = len(win_values) / len(all_values)
-                            roi = average_win_value * strike_rate
-                            minimum_dividend = len(get_combinations(prediction['picks'][:Prediction.BET_TYPES[bet_type]])) / strike_rate
+                            win_values = [value for value in all_values if value > 0]
+                            if len(win_values) > 0:
 
-                            if roi > 1.0 and (best_predictions[bet_type] is None or minimum_dividend < best_predictions[bet_type][2]):
-                                best_predictions[bet_type] = prediction, roi, minimum_dividend
+                                strike_rate = len(win_values) / len(all_values)
+                                minimum_dividend = len(get_combinations(prediction['picks'][:Prediction.BET_TYPES[bet_type]])) / strike_rate
 
-                        if bet_type == 'win' and sum(all_values) > 0:
-                            for number in prediction['picks'][0]:
-                                best_predictions['multi'].add(number)
+                                if best_predictions[bet_type] is None or minimum_dividend < best_predictions[bet_type][1]:
+                                    best_predictions[bet_type] = prediction, minimum_dividend
 
         return best_predictions
 

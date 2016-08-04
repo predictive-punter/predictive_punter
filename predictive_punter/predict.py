@@ -25,7 +25,6 @@ class PredictCommand(Command):
             '2nd',
             '3rd',
             '4th',
-            'ROI',
             'Minimum Dividend'
             ])
 
@@ -60,7 +59,6 @@ class PredictCommand(Command):
                         None,
                         None,
                         None,
-                        None,
                         None
                         ])
                 else:
@@ -69,7 +67,6 @@ class PredictCommand(Command):
                     for count in range(4 - Prediction.BET_TYPES[key]):
                         row.append(None)
                     row.append(race.best_predictions[key][1])
-                    row.append(race.best_predictions[key][2])
 
                 self.write_row(row)
 
