@@ -47,9 +47,9 @@ def calculate_value(self, places):
     if combinations is not None:
         for combination in combinations:
             combination_value = 1.00
-            for runner in combination:
-                if runner.starting_price is not None:
-                    combination_value *= runner.starting_price
+            for index in range(len(combination)):
+                if combination[index].starting_price is not None:
+                    combination_value *= max(combination[index].starting_price * (places - index) / places, 1.0)
             value += combination_value
 
     return value

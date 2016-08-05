@@ -72,7 +72,6 @@ class Prediction(racing_data.Entity):
 
             prediction_combinations = [tuple(combination) for combination in get_combinations(prediction['picks'][:cls.BET_TYPES[bet_type]])]
             if prediction_combinations is not None and len(prediction_combinations) > 0:
-                value -= len(prediction_combinations)
                 
                 winning_combinations = race.get_winning_combinations(cls.BET_TYPES[bet_type])
                 if winning_combinations is not None:
@@ -80,10 +79,16 @@ class Prediction(racing_data.Entity):
                         numeric_combination = tuple([runner['number'] for runner in winning_combination])
                         if numeric_combination in prediction_combinations:
                             combination_value = 1.00
-                            for runner in winning_combination:
-                                if runner.starting_price is not None:
-                                    combination_value *= runner.starting_price
+                            for index in range(len(winning_combination)):
+                                if winning_combination[index].starting_price is not None:
+                                    combination_value *= max(winning_combination[index].starting_price * (cls.BET_TYPES[bet_type] - index) / cls.BET_TYPES[bet_type], 1.0)
                             value += combination_value
+
+                if cls.BET_TYPES[bet_type] > 1:
+                    value /= len(prediction_combinations)
+                    value -= 1.0
+                else:
+                    value -= len(prediction_combinations)
 
             prediction[bet_type + '_value'] = value
 
