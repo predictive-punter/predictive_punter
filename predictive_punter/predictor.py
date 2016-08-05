@@ -10,18 +10,31 @@ from sklearn import grid_search, linear_model
 class Predictor(racing_data.Entity):
     """A predictor wraps a scikit-learn estimator in a persistence framework"""
 
-    CLASSIFICATION_PARAMS = {
-        'class_weight': ['balanced', None],
-        'loss':         ['hinge', 'log', 'modified_huber', 'perceptron', 'squared_hinge'],
-        'penalty':      ['elasticnet', 'l1', 'l2', 'none']
+    CLASSIFICATION_TYPES = {
+        linear_model.PassiveAggressiveClassifier:   {
+            'class_weight': ['balanced', None],
+            'loss':         ['hinge', 'squared_hinge']
+        },
+        linear_model.Perceptron:                    {
+            'class_weight': ['balanced', None],
+            'penalty':      ['elasticnet', 'l1', 'l2', None]
+        },
+        linear_model.SGDClassifier:                 {
+            'class_weight': ['balanced', None],
+            'loss':         ['epsilon_insensitive', 'hinge', 'huber', 'log', 'modified_huber', 'perceptron', 'squared_epsilon_insensitive', 'squared_hinge', 'squared_loss'],
+            'penalty':      ['elasticnet', 'l1', 'l2', 'none']
+        }
     }
-    CLASSIFICATION_PARAM_GRID = list(grid_search.ParameterGrid(CLASSIFICATION_PARAMS))
 
-    REGRESSION_PARAMS = {
-        'loss':     ['epsilon_insensitive', 'huber', 'squared_epsilon_insensitive', 'squared_loss'],
-        'penalty':  ['elasticnet', 'l1', 'l2', 'none']
+    REGRESSION_TYPES = {
+        linear_model.PassiveAggressiveRegressor:    {
+            'loss':         ['epsilon_insensitive', 'squared_epsilon_insensitive']
+        },
+        linear_model.SGDRegressor:                  {
+            'loss':         ['epsilon_insensitive', 'huber', 'squared_epsilon_insensitive', 'squared_loss'],
+            'penalty':      ['elasticnet', 'l1', 'l2', 'none']
+        }
     }
-    REGRESSION_PARAM_GRID = list(grid_search.ParameterGrid(REGRESSION_PARAMS))
 
     predictor_cache = dict()
     predictor_locks = dict()
@@ -70,7 +83,7 @@ class Predictor(racing_data.Entity):
                                 train_y_regression.append(active_runner.sample['regression_result'])
                                 train_weights.append(active_runner.sample['weight'])
 
-                    if len(train_X) > 0:
+                    if len(train_X) > 0 and (last_training_date is not None or len(train_X) >= len(train_X[0])):
 
                         train_X = numpy.array(train_X)
                         train_y_classification = numpy.array(train_y_classification)
@@ -98,17 +111,19 @@ class Predictor(racing_data.Entity):
 
         for uses_sample_weights in (True, False):
 
-            for estimator_params in cls.CLASSIFICATION_PARAM_GRID:
-                try:
-                    predictors.append(cls.generate_predictor(race, linear_model.SGDClassifier, estimator_params, True, uses_sample_weights))
-                except BaseException:
-                    pass
+            for classification_type in cls.CLASSIFICATION_TYPES:
+                for classification_params in list(grid_search.ParameterGrid(cls.CLASSIFICATION_TYPES[classification_type])):
+                    try:
+                        predictors.append(cls.generate_predictor(race, classification_type, classification_params, True, uses_sample_weights))
+                    except BaseException:
+                        pass
 
-            for estimator_params in cls.REGRESSION_PARAM_GRID:
-                try:
-                    predictors.append(cls.generate_predictor(race, linear_model.SGDRegressor, estimator_params, False, uses_sample_weights))
-                except BaseException:
-                    pass
+            for regression_type in cls.REGRESSION_TYPES:
+                for regression_params in list(grid_search.ParameterGrid(cls.REGRESSION_TYPES[regression_type])):
+                    try:
+                        predictors.append(cls.generate_predictor(race, regression_type, regression_params, False, uses_sample_weights))
+                    except BaseException:
+                        pass
 
         return predictors
 
