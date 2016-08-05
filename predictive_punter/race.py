@@ -49,7 +49,7 @@ def calculate_value(self, places):
             combination_value = 1.00
             for index in range(len(combination)):
                 if combination[index].starting_price is not None:
-                    combination_value *= max(combination[index].starting_price * (places - index) / places, 2.0)
+                    combination_value *= max(combination[index].starting_price * (places - index) / places, 2.0 if index > 0 else 1.0)
             value += combination_value
 
     return value
@@ -164,7 +164,7 @@ def best_predictions(self):
 
                                 if best_predictions[bet_type] is None or minimum_dividend < best_predictions[bet_type][1]:
 
-                                    roi = (total_value - len(all_values)) / len(all_values)
+                                    roi = total_value / len(all_values)
 
                                     best_predictions[bet_type] = prediction, minimum_dividend, roi
 

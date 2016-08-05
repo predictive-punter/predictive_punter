@@ -81,7 +81,7 @@ class Prediction(racing_data.Entity):
                             combination_value = 1.00
                             for index in range(len(winning_combination)):
                                 if winning_combination[index].starting_price is not None:
-                                    combination_value *= max(winning_combination[index].starting_price * (cls.BET_TYPES[bet_type] - index) / cls.BET_TYPES[bet_type], 2.0)
+                                    combination_value *= max(winning_combination[index].starting_price * (cls.BET_TYPES[bet_type] - index) / cls.BET_TYPES[bet_type], 2.0 if index > 0 else 1.0)
                             value += combination_value
 
                 if cls.BET_TYPES[bet_type] > 1:
