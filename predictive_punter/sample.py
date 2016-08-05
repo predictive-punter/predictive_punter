@@ -21,7 +21,7 @@ class Sample(racing_data.Entity):
             raw_query_data.append(runner[key])
         for key in ('age', 'carrying', 'races_per_year', 'spell', 'up'):
             raw_query_data.append(getattr(runner, key))
-        for key1 in ('at_distance', 'at_distance_on_track', 'at_up', 'career', 'last_10', 'last_12_months', 'on_firm', 'on_good', 'on_heavy', 'on_soft', 'on_synthetic', 'on_track', 'on_turf', 'since_rest', 'with_jockey'):
+        for key1 in ('at_distance', 'at_distance_on_track', 'at_up', 'career', 'last_10', 'last_12_months', 'on_firm', 'on_good', 'on_heavy', 'on_soft', 'on_synthetic', 'on_track', 'on_turf', 'since_rest', 'with_jockey', 'jockey_at_distance', 'jockey_at_distance_on_track', 'jockey_career', 'jockey_last_12_months', 'jockey_on_firm', 'jockey_on_good', 'jockey_on_heavy', 'jockey_on_soft', 'jockey_on_synthetic', 'jockey_on_track', 'jockey_on_turf'):
             raw_query_data.extend(runner.calculate_expected_times(key1))
             performance_list = getattr(runner, key1)
             for key2 in ('earnings', 'earnings_potential', 'fourth_pct', 'result_potential', 'roi', 'second_pct', 'starts', 'third_pct', 'win_pct'):
