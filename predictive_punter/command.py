@@ -8,6 +8,7 @@ import cache_requests
 from lxml import html
 import punters_client
 import pymongo
+import racing_data
 import redis
 import requests
 
@@ -154,6 +155,15 @@ class Command:
         else:
             if self.do_database_backups:
                 log_time('backing up the database', self.backup_database)
+
+            racing_data.Runner.jockey_career_cache.clear()
+            racing_data.Runner.jockey_last_12_months_cache.clear()
+            racing_data.Runner.jockey_on_firm_cache.clear()
+            racing_data.Runner.jockey_on_good_cache.clear()
+            racing_data.Runner.jockey_on_heavy_cache.clear()
+            racing_data.Runner.jockey_on_soft_cache.clear()
+            racing_data.Runner.jockey_on_synthetic_cache.clear()
+            racing_data.Runner.jockey_on_turf_cache.clear()
 
     def process_meet(self, meet):
         """Process the specified meet"""

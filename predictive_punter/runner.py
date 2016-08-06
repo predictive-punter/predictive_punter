@@ -59,71 +59,114 @@ def jockey_at_distance_on_track(self):
 racing_data.Runner.jockey_at_distance_on_track = jockey_at_distance_on_track
 
 
+racing_data.Runner.jockey_career_cache = dict()
+
 @property
 def jockey_career(self):
     """Return a PerformanceList containing all performances for the jockey prior to the current race date"""
 
-    def generate_jockey_career():
-        return racing_data.PerformanceList([performance for performance in self.jockey.performances if performance['date'] < self.race.meet['date']] if self.jockey is not None else list())
-
-    return self.get_cached_property('jockey_career', generate_jockey_career)
+    if self.jockey is None:
+        return racing_data.PerformanceList()
+    else:
+        if self.jockey['_id'] not in self.jockey_career_cache:
+            self.jockey_career_cache[self.jockey['_id']] = racing_data.PerformanceList([performance for performance in self.jockey.performances if performance['date'] < self.race.meet['date']])
+        return self.jockey_career_cache[self.jockey['_id']]
 
 racing_data.Runner.jockey_career = jockey_career
 
+
+racing_data.Runner.jockey_last_12_months_cache = dict()
 
 @property
 def jockey_last_12_months(self):
     """Return a PerformanceList containing all prior performances for the jockey in the last 12 months"""
 
-    def generate_jockey_last_12_months():
-        return racing_data.PerformanceList([performance for performance in self.jockey_career if performance['date'] >= self.race.meet['date'] - timedelta(days=365)])
-
-    return self.get_cached_property('jockey_last_12_months', generate_jockey_last_12_months)
+    if self.jockey is None:
+        return racing_data.PerformanceList()
+    else:
+        if self.jockey['_id'] not in self.jockey_last_12_months_cache:
+            self.jockey_last_12_months_cache[self.jockey['_id']] = racing_data.PerformanceList([performance for performance in self.jockey_career if performance['date'] >= self.race.meet['date'] - timedelta(days=365)])
+        return self.jockey_last_12_months_cache[self.jockey['_id']]
 
 racing_data.Runner.jockey_last_12_months = jockey_last_12_months
 
+
+racing_data.Runner.jockey_on_firm_cache = dict()
 
 @property
 def jockey_on_firm(self):
     """Return a PerformanceList containing all prior performances for the jockey on FIRM tracks"""
 
-    return self.get_cached_property('jockey_on_firm', self.get_performance_list_jockey_on_track_condition, 'FIRM')
+    if self.jockey is None:
+        return racing_data.PerformanceList()
+    else:
+        if self.jockey['_id'] not in self.jockey_on_firm_cache:
+            self.jockey_on_firm_cache[self.jockey['_id']] = self.get_performance_list_jockey_on_track_condition('FIRM')
+        return self.jockey_on_firm_cache[self.jockey['_id']]
 
 racing_data.Runner.jockey_on_firm = jockey_on_firm
 
+
+racing_data.Runner.jockey_on_good_cache = dict()
 
 @property
 def jockey_on_good(self):
     """Return a PerformanceList containing all prior performances for the jockey on GOOD tracks"""
 
-    return self.get_cached_property('jockey_on_good', self.get_performance_list_jockey_on_track_condition, 'GOOD')
+    if self.jockey is None:
+        return racing_data.PerformanceList()
+    else:
+        if self.jockey['_id'] not in self.jockey_on_good_cache:
+            self.jockey_on_good_cache[self.jockey['_id']] = self.get_performance_list_jockey_on_track_condition('GOOD')
+        return self.jockey_on_good_cache[self.jockey['_id']]
 
 racing_data.Runner.jockey_on_good = jockey_on_good
 
+
+racing_data.Runner.jockey_on_heavy_cache = dict()
 
 @property
 def jockey_on_heavy(self):
     """Return a PerformanceList containing all prior performances for the jockey on HEAVY tracks"""
 
-    return self.get_cached_property('jockey_on_heavy', self.get_performance_list_jockey_on_track_condition, 'HEAVY')
+    if self.jockey is None:
+        return racing_data.PerformanceList()
+    else:
+        if self.jockey['_id'] not in self.jockey_on_heavy_cache:
+            self.jockey_on_heavy_cache[self.jockey['_id']] = self.get_performance_list_jockey_on_track_condition('HEAVY')
+        return self.jockey_on_heavy_cache[self.jockey['_id']]
 
 racing_data.Runner.jockey_on_heavy = jockey_on_heavy
 
+
+racing_data.Runner.jockey_on_soft_cache = dict()
 
 @property
 def jockey_on_soft(self):
     """Return a PerformanceList containing all prior performances for the jockey on SOFT tracks"""
 
-    return self.get_cached_property('jockey_on_soft', self.get_performance_list_jockey_on_track_condition, 'SOFT')
+    if self.jockey is None:
+        return racing_data.PerformanceList()
+    else:
+        if self.jockey['_id'] not in self.jockey_on_soft_cache:
+            self.jockey_on_soft_cache[self.jockey['_id']] = self.get_performance_list_jockey_on_track_condition('SOFT')
+        return self.jockey_on_soft_cache[self.jockey['_id']]
 
 racing_data.Runner.jockey_on_soft = jockey_on_soft
 
+
+racing_data.Runner.jockey_on_synthetic_cache = dict()
 
 @property
 def jockey_on_synthetic(self):
     """Return a PerformanceList containing all prior performances for the jockey on SYNTHETIC tracks"""
 
-    return self.get_cached_property('jockey_on_synthetic', self.get_performance_list_jockey_on_track_condition, 'SYNTHETIC')
+    if self.jockey is None:
+        return racing_data.PerformanceList()
+    else:
+        if self.jockey['_id'] not in self.jockey_on_synthetic_cache:
+            self.jockey_on_synthetic_cache[self.jockey['_id']] = self.get_performance_list_jockey_on_track_condition('SYNTHETIC')
+        return self.jockey_on_synthetic_cache[self.jockey['_id']]
 
 racing_data.Runner.jockey_on_synthetic = jockey_on_synthetic
 
@@ -146,14 +189,18 @@ def jockey_on_track(self):
 racing_data.Runner.jockey_on_track = jockey_on_track
 
 
+racing_data.Runner.jockey_on_turf_cache = dict()
+
 @property
 def jockey_on_turf(self):
     """Return a PerformanceList containing all prior performances for the jockey on turf tracks"""
 
-    def generate_jockey_on_turf():
-        return racing_data.PerformanceList([performance for performance in self.jockey_career if performance['track_condition'] is not None and 'SYNTHETIC' not in performance['track_condition'].upper()])
-
-    return self.get_cached_property('jockey_on_turf', generate_jockey_on_turf)
+    if self.jockey is None:
+        return racing_data.PerformanceList()
+    else:
+        if self.jockey['_id'] not in self.jockey_on_turf_cache:
+            self.jockey_on_turf_cache[self.jockey['_id']] = racing_data.PerformanceList([performance for performance in self.jockey_career if performance['track_condition'] is not None and 'SYNTHETIC' not in performance['track_condition'].upper()])
+        return self.jockey_on_turf_cache[self.jockey['_id']]
 
 racing_data.Runner.jockey_on_turf = jockey_on_turf
 
