@@ -2,7 +2,7 @@ import csv
 import sys
 import threading
 
-from . import Command, Prediction, Predictor
+from . import Command, Prediction
 
 
 class PredictCommand(Command):
@@ -29,19 +29,8 @@ class PredictCommand(Command):
             'ROI'
             ])
 
-    def process_date(self, date):
-        """Extend the process_date method to clear predictor locks after each date"""
-
-        super().process_date(date)
-
-        Predictor.predictor_cache.clear()
-        Predictor.predictor_locks.clear()
-        self.provider.query_locks.clear()
-    
-    def process_race(self, race):
-        """Extend the process_race method to generate predictions if necessary"""
-
-        super().process_race(race)
+    def post_process_race(self, race):
+        """Output the best predictions for the race after the race has been processed"""
 
         for key in race.best_predictions:
             if race.best_predictions[key] is not None and len(race.best_predictions[key]) > 0:

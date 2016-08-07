@@ -12,7 +12,7 @@ import racing_data
 import redis
 import requests
 
-from . import Provider
+from . import Provider, Predictor
 from .date_utils import *
 from .profiling_utils import *
 
@@ -90,6 +90,14 @@ class Command:
         
         self.provider = Provider(self.database, scraper)
 
+        self.must_process_performances = hasattr(self, 'process_performance')
+        self.must_process_horses = hasattr(self, 'pre_process_horse') or hasattr(self, 'post_process_horse') or self.must_process_performances
+        self.must_process_jockeys = hasattr(self, 'process_jockey')
+        self.must_process_trainers = hasattr(self, 'process_trainer')
+        self.must_process_runners = hasattr(self, 'pre_process_runner') or hasattr(self, 'post_process_runner') or self.must_process_horses or self.must_process_jockeys or self.must_process_trainers
+        self.must_process_races = hasattr(self, 'pre_process_race') or hasattr(self, 'post_process_race') or self.must_process_runners
+        self.must_process_meets = hasattr(self, 'pre_process_meet') or hasattr(self, 'post_process_meet') or self.must_process_races
+
     def backup_database(self):
         """Backup the database if backup_database is available"""
 
@@ -144,7 +152,8 @@ class Command:
         """Process all racing data for the specified date"""
 
         try:
-            self.process_collection(self.provider.get_meets_by_date(date), self.process_meet)
+            if self.must_process_meets:
+                self.process_collection(self.provider.get_meets_by_date(date), self.process_meet)
 
         except BaseException:
             logging.critical('An exception occurred while processing date {date:%Y-%m-%d}'.format(date=date))
@@ -156,6 +165,8 @@ class Command:
             if self.do_database_backups:
                 log_time('backing up the database', self.backup_database)
 
+            Predictor.predictor_cache.clear()
+            Predictor.predictor_locks.clear()
             racing_data.Runner.jockey_career_cache.clear()
             racing_data.Runner.jockey_last_12_months_cache.clear()
             racing_data.Runner.jockey_on_firm_cache.clear()
@@ -164,40 +175,58 @@ class Command:
             racing_data.Runner.jockey_on_soft_cache.clear()
             racing_data.Runner.jockey_on_synthetic_cache.clear()
             racing_data.Runner.jockey_on_turf_cache.clear()
+            self.provider.query_locks.clear()
 
     def process_meet(self, meet):
         """Process the specified meet"""
 
-        self.process_collection(meet.races, self.process_race)
+        if hasattr(self, 'pre_process_meet'):
+            self.pre_process_meet(meet)
+
+        if self.must_process_races:
+            self.process_collection(meet.races, self.process_race)
+
+        if hasattr(self, 'post_process_meet'):
+            self.post_process_meet(meet)
 
     def process_race(self, race):
         """Process the specified race"""
 
-        self.process_collection(race.runners, self.process_runner)
+        if hasattr(self, 'pre_process_race'):
+            self.pre_process_race(race)
+
+        if self.must_process_runners:
+            self.process_collection(race.runners, self.process_runner)
+
+        if hasattr(self, 'post_process_race'):
+            self.post_process_race(race)
 
     def process_runner(self, runner):
         """Process the specified runner"""
 
-        if runner.horse is not None:
+        if hasattr(self, 'pre_process_runner'):
+            self.pre_process_runner(runner)
+
+        if self.must_process_horses and runner.horse is not None:
             log_time('processing {horse}'.format(horse=runner.horse), self.process_horse, runner.horse)
 
-        if runner.jockey is not None:
+        if self.must_process_jockeys and runner.jockey is not None:
             log_time('processing {jockey}'.format(jockey=runner.jockey), self.process_jockey, runner.jockey)
 
-        if runner.trainer is not None:
+        if self.must_process_trainers and runner.trainer is not None:
             log_time('processing {trainer}'.format(trainer=runner.trainer), self.process_trainer, runner.trainer)
+
+        if hasattr(self, 'post_process_runner'):
+            self.post_process_runner(runner)
 
     def process_horse(self, horse):
         """Process the specified horse"""
 
-        horse.performances
+        if hasattr(self, 'pre_process_horse'):
+            self.pre_process_horse(horse)
 
-    def process_jockey(self, jockey):
-        """Process the specified jockey"""
+        if self.must_process_performances:
+            self.process_collection(horse.performances, self.process_performance)
 
-        pass
-
-    def process_trainer(self, trainer):
-        """Process the specified trainer"""
-
-        pass
+        if hasattr(self, 'post_process_horse'):
+            self.post_process_horse(horse)
