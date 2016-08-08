@@ -161,12 +161,12 @@ def best_predictions(self):
 
                                 strike_rate = len(win_values) / len(all_values)
                                 minimum_dividend = 1.0 / strike_rate
-
-                                if best_predictions[bet_type] is None or minimum_dividend < best_predictions[bet_type][1]:
+                                if best_predictions[bet_type] is None or minimum_dividend <= best_predictions[bet_type][1]:
 
                                     roi = total_value / len(all_values)
+                                    if best_predictions[bet_type] is None or minimum_dividend < best_predictions[bet_type][1] or roi > best_predictions[bet_type][2]:
 
-                                    best_predictions[bet_type] = prediction, minimum_dividend, roi
+                                        best_predictions[bet_type] = prediction, minimum_dividend, roi
 
         return best_predictions
 
