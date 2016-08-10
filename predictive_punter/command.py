@@ -30,14 +30,14 @@ class Command:
     @classmethod
     def parse_args(cls, args):
         """Return a dictionary of configuration values based on the provided command line arguments"""
-        
+
         config = {
             'backup_database':  False,
             'database_uri':     'mongodb://localhost:27017/predictive_punter',
             'date_from':        datetime.now(),
             'date_to':          datetime.now(),
             'logging_level':    logging.INFO,
-            'redis_uri':        'redis://localhost:6379/predictive_punter'
+            'redis_uri':        'redis://localhost:6379/0'
         }
 
         opts, args = getopt(args, 'bd:qr:v', ['backup-database', 'database-uri=', 'quiet', 'redis-uri=', 'verbose'])
@@ -76,7 +76,7 @@ class Command:
 
         http_client = None
         try:
-            http_client = cache_requests.Session(connection=redis.fromurl(kwargs['redis_uri']))
+            http_client = cache_requests.Session(connection=redis.from_url(kwargs['redis_uri']))
         except BaseException:
             try:
                 http_client = cache_requests.Session()
@@ -86,7 +86,7 @@ class Command:
         html_parser = html.fromstring
 
         scraper = punters_client.Scraper(http_client, html_parser)
-        
+
         self.provider = Provider(self.database, scraper)
 
     def backup_database(self):
