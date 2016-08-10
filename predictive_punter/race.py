@@ -82,7 +82,7 @@ racing_data.Race.calculate_value = calculate_value
 @property
 def win_value(self):
     """Return the sum of the starting prices of all winning runners less the number of winning runners"""
-    
+
     return self.calculate_value(1)
 
 racing_data.Race.win_value = win_value
@@ -91,7 +91,7 @@ racing_data.Race.win_value = win_value
 @property
 def exacta_value(self):
     """Return the sum of the products of the starting prices of first and second placed runners in all winning combinations, less the number of winning combinations"""
-    
+
     return self.calculate_value(2)
 
 racing_data.Race.exacta_value = exacta_value
@@ -100,7 +100,7 @@ racing_data.Race.exacta_value = exacta_value
 @property
 def trifecta_value(self):
     """Return the sum of the products of the starting prices of first, second and third placed runners in all winning combinations, less the number of winning combinations"""
-    
+
     return self.calculate_value(3)
 
 racing_data.Race.trifecta_value = trifecta_value
@@ -109,7 +109,7 @@ racing_data.Race.trifecta_value = trifecta_value
 @property
 def first_four_value(self):
     """Return the sum of the products of the starting prices of the first, second, third and fourth placed runners in all winning combinations, less the number of winning combinations"""
-    
+
     return self.calculate_value(4)
 
 racing_data.Race.first_four_value = first_four_value
@@ -118,7 +118,7 @@ racing_data.Race.first_four_value = first_four_value
 @property
 def total_value(self):
     """Return the sum of the win, exacta, trifecta and first four values for this race"""
-    
+
     total_value = 0.0
     for value in (self.win_value, self.exacta_value, self.trifecta_value, self.first_four_value):
         if value is not None:
@@ -126,3 +126,65 @@ def total_value(self):
     return total_value
 
 racing_data.Race.total_value = total_value
+
+
+@property
+def prediction(self):
+    """Get a prediction for this race"""
+
+    predictions = dict()
+    for runner in self.active_runners:
+        prediction = runner.prediction
+        if prediction is not None:
+            if prediction not in predictions:
+                predictions[prediction] = set()
+            predictions[prediction].add(runner['number'])
+
+    prediction = list()
+
+    for key in sorted(predictions.keys()):
+        if len(prediction) < 4:
+            prediction.append(predictions[key])
+        else:
+            break
+
+    while len(prediction) < 4:
+        prediction.append(set())
+
+    return prediction
+
+racing_data.Race.prediction = prediction
+
+
+@property
+def similar_races_dict(self):
+    """Return a dictionary of query values for similar races"""
+
+    return {
+        'entry_conditions': self['entry_conditions'],
+        'group':            self['group'],
+        'track_condition':  self['track_condition']
+    }
+
+racing_data.Race.similar_races_dict = similar_races_dict
+
+
+@property
+def similar_races_hash(self):
+    """Return a hash of the similar races dictionary"""
+
+    return hash(tuple(self.similar_races_dict['entry_conditions'] + [self.similar_races_dict[key] for key in sorted(self.similar_races_dict.keys()) if key != 'entry_conditions']))
+
+racing_data.Race.similar_races_hash = similar_races_hash
+
+
+@property
+def similar_races(self):
+    """Return a list of similar races prior to the current race's date"""
+
+    query = self.similar_races_dict
+    query['start_time'] = {'$lt': self.meet['date']}
+
+    return self.provider.find(racing_data.Race, query, None)
+
+racing_data.Race.similar_races = similar_races

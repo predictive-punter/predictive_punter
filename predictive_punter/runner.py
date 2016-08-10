@@ -1,4 +1,7 @@
+import numpy
 import racing_data
+
+from . import Predictor
 
 
 def calculate_expected_times(self, performance_list_name):
@@ -7,7 +10,7 @@ def calculate_expected_times(self, performance_list_name):
     def calculate_expected_time(momentum):
         if momentum is not None:
             return self.actual_distance / (momentum / self.actual_weight)
-    
+
     return tuple([calculate_expected_time(momentum) for momentum in getattr(self, performance_list_name).momentums]) if self.actual_distance is not None else tuple([None, None, None])
 
 racing_data.Runner.calculate_expected_times = calculate_expected_times
@@ -30,3 +33,24 @@ def sample(self):
     return self.get_cached_property('sample', self.provider.get_sample_by_runner, self)
 
 racing_data.Runner.sample = sample
+
+
+@property
+def prediction(self):
+    """Return a prediction for this runner"""
+
+    predictions = dict()
+
+    for estimator, score in Predictor.get_predictors(self.race):
+        try:
+            prediction = estimator.predict(numpy.array(self.sample.normalized_query_data).reshape(1, -1))[0]
+            if prediction not in predictions:
+                predictions[prediction] = 0.0
+            predictions[prediction] += score
+        except BaseException:
+            pass
+
+    if len(predictions) > 0:
+        return sum([key * predictions[key] for key in predictions]) / sum([predictions[key] for key in predictions])
+
+racing_data.Runner.prediction = prediction

@@ -63,7 +63,8 @@ setup(
     entry_points={
         'console_scripts':  [
             'scrape=predictive_punter.scrape:main',
-            'seed=predictive_punter.seed:main'
+            'seed=predictive_punter.seed:main',
+            'predict=predictive_punter.predict:main'
         ]
     }
     )

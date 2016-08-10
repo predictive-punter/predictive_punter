@@ -11,6 +11,7 @@ class Provider(racing_data.Provider):
         """Return a dictionary of required database indexes for each entity type"""
 
         database_indexes = super().database_indexes
+        database_indexes[racing_data.Race].append([('entry_conditions', 1), ('group', 1), ('start_time', 1), ('track_condition', 1)])
         database_indexes[Sample] = [
             [('runner_id', 1)]
         ]
