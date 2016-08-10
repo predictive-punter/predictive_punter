@@ -2,6 +2,7 @@ import concurrent.futures
 from datetime import datetime
 from getopt import getopt
 import logging
+import os
 import time
 
 import cache_requests
@@ -37,10 +38,11 @@ class Command:
             'date_from':        datetime.now(),
             'date_to':          datetime.now(),
             'logging_level':    logging.INFO,
+            'max_workers':      os.cpu_count() * 5,
             'redis_uri':        'redis://localhost:6379/0'
         }
 
-        opts, args = getopt(args, 'bd:qr:v', ['backup-database', 'database-uri=', 'quiet', 'redis-uri=', 'verbose'])
+        opts, args = getopt(args, 'bd:qr:vw:', ['backup-database', 'database-uri=', 'max-workers=', 'quiet', 'redis-uri=', 'verbose'])
 
         for opt, arg in opts:
 
@@ -58,6 +60,9 @@ class Command:
 
             elif opt in ('-v', '--verbose'):
                 config['logging_level'] = logging.DEBUG
+
+            elif opt in ('-w', '--max-workers'):
+                config['max_workers'] = int(arg)
 
         if len(args) > 0:
             config['date_from'] = config['date_to'] = datetime.strptime(args[-1], '%Y-%m-%d')
@@ -89,6 +94,8 @@ class Command:
 
         self.provider = Provider(self.database, scraper)
 
+        self.max_workers = kwargs['max_workers']
+
     def backup_database(self):
         """Backup the database if backup_database is available"""
 
@@ -114,7 +121,7 @@ class Command:
 
         if len(collection) > 0:
 
-            with concurrent.futures.ThreadPoolExecutor() as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
 
                 def process_item(item, retry_count=0, max_retries=5):
                     try:
