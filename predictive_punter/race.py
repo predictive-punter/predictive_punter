@@ -133,12 +133,19 @@ def prediction(self):
     """Get a prediction for this race"""
 
     predictions = dict()
+    train_samples = 0
+    test_samples = 0
+
     for runner in self.active_runners:
         prediction = runner.prediction
         if prediction is not None:
-            if prediction not in predictions:
-                predictions[prediction] = set()
-            predictions[prediction].add(runner['number'])
+            if prediction[0] not in predictions:
+                predictions[prediction[0]] = set()
+            predictions[prediction[0]].add(runner['number'])
+            if prediction[1] > train_samples:
+                train_samples = prediction[1]
+            if prediction[2] > test_samples:
+                test_samples = prediction[2]
 
     prediction = list()
 
@@ -151,7 +158,7 @@ def prediction(self):
     while len(prediction) < 4:
         prediction.append(set())
 
-    return prediction
+    return prediction, train_samples, test_samples
 
 racing_data.Race.prediction = prediction
 

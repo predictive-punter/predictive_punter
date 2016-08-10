@@ -169,6 +169,6 @@ class Predictor:
         try:
             estimator = estimator_type(**estimator_params)
             estimator.fit(train_X, train_y, sample_weight=train_weights)
-            return estimator, estimator.score(test_X, test_y, sample_weight=test_weights)
+            return estimator, estimator.score(test_X, test_y, sample_weight=test_weights), len(train_X), len(test_X)
         except BaseException:
             return None

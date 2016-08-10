@@ -22,7 +22,9 @@ class PredictCommand(Command):
             '1st',
             '2nd',
             '3rd',
-            '4th'
+            '4th',
+            'Training Samples',
+            'Test Samples'
             ])
 
     def process_race(self, race):
@@ -40,7 +42,9 @@ class PredictCommand(Command):
                 race['start_time'].astimezone(self.provider.local_timezone).time()
             ]
             for place in range(4):
-                row.append(','.join([str(number) for number in prediction[place]]) if len(prediction[place]) > 0 else None)
+                row.append(','.join([str(number) for number in prediction[0][place]]) if len(prediction[0][place]) > 0 else None)
+            row.append(prediction[1])
+            row.append(prediction[2])
 
             self.write_row(row)
 
