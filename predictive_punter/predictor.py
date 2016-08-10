@@ -96,7 +96,7 @@ class Predictor:
             if race.similar_races_hash not in cls.predictor_cache:
                 cls.predictor_cache[race.similar_races_hash] = list()
 
-                train_races, test_races = cross_validation.train_test_split(race.similar_races)
+                train_races, test_races = cross_validation.train_test_split(race.similar_races, random_state=1)
                 if len(train_races) > 0 and len(test_races) > 0:
 
                     train_X = list()
