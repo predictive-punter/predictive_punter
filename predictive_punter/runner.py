@@ -39,24 +39,13 @@ racing_data.Runner.sample = sample
 def prediction(self):
     """Return a prediction for this runner"""
 
-    predictions = dict()
-    train_samples = 0
-    test_samples = 0
-
-    for estimator, score, train_size, test_size in Predictor.get_predictors(self.race):
+    predictor = Predictor.get_predictor(self.race)
+    if predictor is not None:
         try:
+            estimator, score, train_samples, test_samples = predictor
             prediction = estimator.predict(numpy.array(self.sample.normalized_query_data).reshape(1, -1))[0]
-            if prediction not in predictions:
-                predictions[prediction] = 0.0
-            predictions[prediction] += score
-            if train_size > train_samples:
-                train_samples = train_size
-            if test_size > test_samples:
-                test_samples = test_size
+            return prediction, score, train_samples, test_samples
         except BaseException:
             pass
-
-    if len(predictions) > 0:
-        return sum([key * predictions[key] for key in predictions]) / sum([predictions[key] for key in predictions]), train_samples, test_samples
 
 racing_data.Runner.prediction = prediction

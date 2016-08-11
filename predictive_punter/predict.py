@@ -23,8 +23,8 @@ class PredictCommand(Command):
             '2nd',
             '3rd',
             '4th',
-            'Training Samples',
-            'Test Samples'
+            '5th',
+            'Confidence'
             ])
 
     def process_race(self, race):
@@ -41,10 +41,12 @@ class PredictCommand(Command):
                 race['number'],
                 race['start_time'].astimezone(self.provider.local_timezone).time()
             ]
-            for place in range(4):
+            for place in range(5):
                 row.append(','.join([str(number) for number in prediction[0][place]]) if len(prediction[0][place]) > 0 else None)
-            row.append(prediction[1])
-            row.append(prediction[2])
+            if prediction[1] is not None and prediction[3] is not None:
+                row.append(prediction[1] * prediction[3])
+            else:
+                row.append(None)
 
             self.write_row(row)
 
