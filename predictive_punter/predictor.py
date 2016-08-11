@@ -1,7 +1,9 @@
+import concurrent.futures
+import logging
 import threading
 
 import numpy
-from sklearn import cross_validation, ensemble, grid_search
+from sklearn import cross_validation, ensemble, grid_search, linear_model, svm
 
 from .profiling_utils import log_time
 
@@ -41,6 +43,38 @@ class Predictor:
 #            'max_features':     ['sqrt', 'log2', None],
 #            'n_estimators':     [5, 10, 20],
 #            'random_state':     [1]
+#        },
+#        linear_model.LogisticRegression:        {   #16
+#            'class_weight':     ['balanced', None],
+#            'penalty':          ['l1', 'l2'],
+#            'random_state':     [1],
+#            'solver':           ['lbfgs', 'liblinear', 'newton-cg', 'sag']
+#        },
+#        linear_model.Perceptron:                {   #8
+#            'class_weight':     ['balanced', None],
+#            'penalty':          ['elasticnet', 'l1', 'l2', None],
+#            'random_state':     [1]
+#        },
+#        linear_model.RidgeClassifier:           {   #12
+#            'class_weight':     ['balanced', None],
+#            'solver':           ['auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag'],
+#            'random_state':     [1]
+#        },
+#        linear_model.SGDClassifier:             {   #72
+#            'class_weight':     ['balanced', None]
+#            'loss':             ['hinge', 'log', 'modified_huber', 'squared_hinge', 'perceptron', 'squared_loss', 'huber', 'epsilon_insensitive', 'squared_epsilon_insensitive'],
+#            'penalty':          ['none', 'l1', 'l2', 'elasticnet'],
+#            'random_state':     [1]
+#        },
+#       svm.SVC:                                {   #6
+#            'class_weight':     ['balanced', None],
+#            'kernel':           ['poly', 'rbf', 'sigmoid'],    # Removed 'linear' and 'precomputed'
+#            'random_state':     [1]
+#        },
+#        svm.NuSVC:                              {   #6
+#            'class_weight':     ['auto', None],
+#            'kernel':           ['poly', 'rbf', 'sigmoid'],    # Removed 'linear' and 'precomputed'
+#            'random_state':     [1]
 #        }
     }
 
@@ -51,17 +85,17 @@ class Predictor:
 #            'n_estimators':     [25, 50, 100],
 #            'random_state':     [1]
 #        },
-        ensemble.BaggingRegressor:      {   #12
-            'max_features':     [0.5, 1.0],
-            'max_samples':      [0.5, 1.0],
-            'n_estimators':     [5, 10, 20],
-            'random_state':     [1]
-        },
-        ensemble.ExtraTreesRegressor:   {   #9
-            'max_features':     ['sqrt', 'log2', None],
-            'n_estimators':     [5, 10, 20],
-            'random_state':     [1]
-        },
+#        ensemble.BaggingRegressor:      {   #12
+#            'max_features':     [0.5, 1.0],
+#            'max_samples':      [0.5, 1.0],
+#            'n_estimators':     [5, 10, 20],
+#            'random_state':     [1]
+#        },
+#        ensemble.ExtraTreesRegressor:   {   #9
+#            'max_features':     ['sqrt', 'log2', None],
+#            'n_estimators':     [5, 10, 20],
+#            'random_state':     [1]
+#        },
 #        ensemble.GradientBoostingRegressor: {   #108
 #            'learning_rate':    [0.05, 0.1, 0.2],
 #            'loss':             ['ls', 'lad', 'huber', 'quantile'],
@@ -73,7 +107,23 @@ class Predictor:
 #            'max_features':     ['sqrt', 'log2', None],
 #            'n_estimators':     [5, 10, 20],
 #            'random_state':     [1]
-#        }
+#        },
+#        linear_model.LinearRegression:      {}, #1
+#        linear_model.Ridge:                 {   #6
+#            'solver':           ['auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag'],
+#            'random_state':     [1]
+#        },
+#        linear_model.SGDRegressor:          {   #16
+#            'loss':             ['squared_loss', 'huber', 'epsilon_insensitive', 'squared_epsilon_insensitive'],
+#            'penalty':          ['none', 'l1', 'l2', 'elasticnet'],
+#            'random_state':     [1]
+#        },
+        svm.SVR:                            {   #3
+            'kernel':           ['poly', 'rbf', 'sigmoid']   # Removed 'linear' and 'precomputed'
+        },
+        svm.NuSVR:                          {   #3
+            'kernel':           ['poly', 'rbf', 'sigmoid']   # Removed 'linear' and 'precomputed'
+        }
     }
 
     predictor_cache = dict()
@@ -149,21 +199,28 @@ class Predictor:
 
         predictors = list()
 
-        for use_weights in (True, False):
+        params_list = list(grid_search.ParameterGrid(estimator_params))
+        count = 1
+
+        for use_weights in (False,):    # removed True
 
             best_predictor = None
 
-            params_list = list(grid_search.ParameterGrid(estimator_params))
-            count = 1
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = list()
 
-            for params in params_list:
-                message = 'generating {estimator_type} {use_weights} ({count}/{total}) with params {estimator_params}'.format(estimator_type=estimator_type.__name__, use_weights='with weights' if use_weights else 'without weights', count=count, total=len(params_list), estimator_params=params)
-                predictor = log_time(message, cls.generate_predictor, estimator_type, params, train_X, train_y, train_weights if use_weights else None, test_X, test_y, test_weights if use_weights else None)
-                if predictor is not None and (best_predictor is None or predictor[1] > best_predictor[1]):
-                    best_predictor = predictor
-                count += 1
+                for params in params_list:
+                    message = 'generating {estimator_type} {use_weights} ({count}/{total}) with params {estimator_params}'.format(estimator_type=estimator_type.__name__, use_weights='with weights' if use_weights else 'without weights', count=count, total=len(params_list) * 2, estimator_params=params)
+                    futures.append(executor.submit(log_time, message, cls.generate_predictor, estimator_type, params, train_X, train_y, train_weights if use_weights else None, test_X, test_y, test_weights if use_weights else None))
+                    count += 1
+
+                for future in concurrent.futures.as_completed(futures):
+                    predictor = future.result()
+                    if predictor is not None and (best_predictor is None or predictor[1] > best_predictor[1]):
+                        best_predictor = predictor
 
             if best_predictor is not None:
+                logging.debug('Using {estimator_type} with {estimator_params} ({estimator_score})'.format(estimator_type=best_predictor[0].__class__.__name__, estimator_params=best_predictor[0].get_params(), estimator_score=best_predictor[1]))
                 predictors.append(best_predictor)
 
         return predictors
