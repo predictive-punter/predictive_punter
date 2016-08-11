@@ -11,118 +11,20 @@ from .profiling_utils import log_time
 class Predictor:
 
     CLASSIFICATION_TYPES = {
-#        ensemble.AdaBoostClassifier:    {   #18
-#            'algorithm':        ['SAMME', 'SAMME.R'],
-#            'learning_rate':    [0.5, 1.0, 2.0],
-#            'n_estimators':     [25, 50, 100],
-#            'random_state':     [1]
-#        },
-#        ensemble.BaggingClassifier:     {   #12
-#            'max_features':     [0.5, 1.0],
-#            'max_samples':      [0.5, 1.0],
-#            'n_estimators':     [5, 10, 20],
-#            'random_state':     [1]
-#        },
-#        ensemble.ExtraTreesClassifier:  {   #36
-#            'class_weight':     ['balanced', 'balanced_subsample'],
-#            'criterion':        ['gini' ,'entropy'],
-#            'max_features':     ['sqrt', 'log2', None],
-#            'n_estimators':     [5, 10, 20],
-#            'random_state':     [1]
-#        },
-#        ensemble.GradientBoostingClassifier:    {   #54
-#            'learning_rate':    [0.05, 0.1, 0.2],
-#            'loss':             ['deviance', 'exponential'],
-#            'max_features':     ['sqrt', 'log2', None],
-#            'n_estimators':     [50, 100, 200],
-#            'random_state':     [1]
-#        },
-#        ensemble.RandomForestClassifier:        {   #36
-#            'class_weight':     ['balanced', 'balanced_subsample'],
-#            'criterion':        ['gini', 'entropy'],
-#            'max_features':     ['sqrt', 'log2', None],
-#            'n_estimators':     [5, 10, 20],
-#            'random_state':     [1]
-#        },
-#        linear_model.LogisticRegression:        {   #16
-#            'class_weight':     ['balanced', None],
-#            'penalty':          ['l1', 'l2'],
-#            'random_state':     [1],
-#            'solver':           ['lbfgs', 'liblinear', 'newton-cg', 'sag']
-#        },
-#        linear_model.Perceptron:                {   #8
-#            'class_weight':     ['balanced', None],
-#            'penalty':          ['elasticnet', 'l1', 'l2', None],
-#            'random_state':     [1]
-#        },
-#        linear_model.RidgeClassifier:           {   #12
-#            'class_weight':     ['balanced', None],
-#            'solver':           ['auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag'],
-#            'random_state':     [1]
-#        },
-#        linear_model.SGDClassifier:             {   #72
-#            'class_weight':     ['balanced', None]
-#            'loss':             ['hinge', 'log', 'modified_huber', 'squared_hinge', 'perceptron', 'squared_loss', 'huber', 'epsilon_insensitive', 'squared_epsilon_insensitive'],
-#            'penalty':          ['none', 'l1', 'l2', 'elasticnet'],
-#            'random_state':     [1]
-#        },
-#       svm.SVC:                                {   #6
-#            'class_weight':     ['balanced', None],
-#            'kernel':           ['poly', 'rbf', 'sigmoid'],    # Removed 'linear' and 'precomputed'
-#            'random_state':     [1]
-#        },
-#        svm.NuSVC:                              {   #6
-#            'class_weight':     ['auto', None],
-#            'kernel':           ['poly', 'rbf', 'sigmoid'],    # Removed 'linear' and 'precomputed'
-#            'random_state':     [1]
-#        }
     }
 
     REGRESSION_TYPES = {
-#        ensemble.AdaBoostRegressor:     {   #27
-#            'learning_rate':    [0.5, 1.0, 2.0],
-#            'loss':             ['linear', 'square', 'exponential'],
-#            'n_estimators':     [25, 50, 100],
-#            'random_state':     [1]
+#        svm.SVR:    {   #36
+#            'C':            [0.5, 1.0, 2.0],
+#            'epsilon':      [0.05, 0.10, 0.20],
+#            'shrinking':    [True, False],
+#            'tol':          [0.01, 0.001, 0.0001]
 #        },
-#        ensemble.BaggingRegressor:      {   #12
-#            'max_features':     [0.5, 1.0],
-#            'max_samples':      [0.5, 1.0],
-#            'n_estimators':     [5, 10, 20],
-#            'random_state':     [1]
-#        },
-#        ensemble.ExtraTreesRegressor:   {   #9
-#            'max_features':     ['sqrt', 'log2', None],
-#            'n_estimators':     [5, 10, 20],
-#            'random_state':     [1]
-#        },
-#        ensemble.GradientBoostingRegressor: {   #108
-#            'learning_rate':    [0.05, 0.1, 0.2],
-#            'loss':             ['ls', 'lad', 'huber', 'quantile'],
-#            'max_features':     ['sqrt', 'log2', None],
-#            'n_estimators':     [50, 100, 200],
-#            'random_state':     [1]
-#        },
-#        ensemble.RandomForestRegressor:     {   #9
-#            'max_features':     ['sqrt', 'log2', None],
-#            'n_estimators':     [5, 10, 20],
-#            'random_state':     [1]
-#        },
-#        linear_model.LinearRegression:      {}, #1
-#        linear_model.Ridge:                 {   #6
-#            'solver':           ['auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag'],
-#            'random_state':     [1]
-#        },
-#        linear_model.SGDRegressor:          {   #16
-#            'loss':             ['squared_loss', 'huber', 'epsilon_insensitive', 'squared_epsilon_insensitive'],
-#            'penalty':          ['none', 'l1', 'l2', 'elasticnet'],
-#            'random_state':     [1]
-#        },
-        svm.SVR:                            {   #3
-            'kernel':           ['poly', 'rbf', 'sigmoid']   # Removed 'linear' and 'precomputed'
-        },
-        svm.NuSVR:                          {   #3
-            'kernel':           ['poly', 'rbf', 'sigmoid']   # Removed 'linear' and 'precomputed'
+        svm.NuSVR:  {   #36
+            'C':            [0.5, 1.0, 2.0],
+            'nu':           [0.25, 0.50, 0.75],
+            'shrinking':    [True, False],
+            'tol':          [0.01, 0.001, 0.0001]
         }
     }
 
@@ -210,7 +112,7 @@ class Predictor:
                 futures = list()
 
                 for params in params_list:
-                    message = 'generating {estimator_type} {use_weights} ({count}/{total}) with params {estimator_params}'.format(estimator_type=estimator_type.__name__, use_weights='with weights' if use_weights else 'without weights', count=count, total=len(params_list) * 2, estimator_params=params)
+                    message = 'generating {estimator_type} {use_weights} ({count}/{total}) with params {estimator_params}'.format(estimator_type=estimator_type.__name__, use_weights='with weights' if use_weights else 'without weights', count=count, total=len(params_list), estimator_params=params)
                     futures.append(executor.submit(log_time, message, cls.generate_predictor, estimator_type, params, train_X, train_y, train_weights if use_weights else None, test_X, test_y, test_weights if use_weights else None))
                     count += 1
 
