@@ -133,15 +133,13 @@ class Predictor:
                         test_y_regression = numpy.array(test_y_regression)
                         test_weights = numpy.array(test_weights)
 
-                        for use_weights in (True, False):
+                        for estimator_type in cls.CLASSIFICATION_TYPES:
+                            predictors = cls.generate_predictors(estimator_type, cls.CLASSIFICATION_TYPES[estimator_type], train_X, train_y_classification, train_weights, test_X, test_y_classification, test_weights)
+                            cls.predictor_cache[race.similar_races_hash].extend(predictors)
 
-                            for estimator_type in cls.CLASSIFICATION_TYPES:
-                                predictors = cls.generate_predictors(estimator_type, cls.CLASSIFICATION_TYPES[estimator_type], train_X, train_y_classification, train_weights if use_weights else None, test_X, test_y_classification, test_weights if use_weights else None)
-                                cls.predictor_cache[race.similar_races_hash].extend(predictors)
-
-                            for estimator_type in cls.REGRESSION_TYPES:
-                                predictors = cls.generate_predictors(estimator_type, cls.REGRESSION_TYPES[estimator_type], train_X, train_y_regression, train_weights if use_weights else None, test_X, test_y_regression, test_weights if use_weights else None)
-                                cls.predictor_cache[race.similar_races_hash].extend(predictors)
+                        for estimator_type in cls.REGRESSION_TYPES:
+                            predictors = cls.generate_predictors(estimator_type, cls.REGRESSION_TYPES[estimator_type], train_X, train_y_regression, train_weights, test_X, test_y_regression, test_weights)
+                            cls.predictor_cache[race.similar_races_hash].extend(predictors)
 
             return cls.predictor_cache[race.similar_races_hash]
 
@@ -151,14 +149,22 @@ class Predictor:
 
         predictors = list()
 
-        params_list = list(grid_search.ParameterGrid(estimator_params))
-        count = 1
-        for params in params_list:
-            message = 'generating {estimator_type} ({count}/{total}) with params {estimator_params}'.format(estimator_type=estimator_type.__name__, count=count, total=len(params_list), estimator_params=params)
-            predictor = log_time(message, cls.generate_predictor, estimator_type, params, train_X, train_y, train_weights, test_X, test_y, test_weights)
-            if predictor is not None:
-                predictors.append(predictor)
-            count += 1
+        for use_weights in (True, False):
+
+            best_predictor = None
+
+            params_list = list(grid_search.ParameterGrid(estimator_params))
+            count = 1
+
+            for params in params_list:
+                message = 'generating {estimator_type} {use_weights} ({count}/{total}) with params {estimator_params}'.format(estimator_type=estimator_type.__name__, use_weights='with weights' if use_weights else 'without weights', count=count, total=len(params_list), estimator_params=params)
+                predictor = log_time(message, cls.generate_predictor, estimator_type, params, train_X, train_y, train_weights if use_weights else None, test_X, test_y, test_weights if use_weights else None)
+                if predictor is not None and (best_predictor is None or predictor[1] > best_predictor[1]):
+                    best_predictor = predictor
+                count += 1
+
+            if best_predictor is not None:
+                predictors.append(best_predictor)
 
         return predictors
 
