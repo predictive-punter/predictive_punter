@@ -11,3 +11,4 @@ from .command import Command
 from .scrape import ScrapeCommand
 from .seed import SeedCommand
 from .predict import PredictCommand
+from .delete import DeleteCommand

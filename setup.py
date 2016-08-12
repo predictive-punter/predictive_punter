@@ -64,7 +64,8 @@ setup(
         'console_scripts':  [
             'scrape=predictive_punter.scrape:main',
             'seed=predictive_punter.seed:main',
-            'predict=predictive_punter.predict:main'
+            'predict=predictive_punter.predict:main',
+            'delete=predictive_punter.delete:main'
         ]
     }
     )

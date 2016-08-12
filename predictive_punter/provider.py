@@ -27,3 +27,10 @@ class Provider(racing_data.Provider):
         """Get the sample for the specified runner"""
 
         return self.find_or_create_one(Sample, {'runner_id': runner['_id']}, {'runner': runner}, runner['updated_at'], Sample.generate_sample, runner)
+
+    def delete(self, entity):
+        """Remove the specified entity from the database"""
+
+        if '_id' in entity and entity['_id'] is not None:
+            self.get_database_collection(entity.__class__).delete_one({'_id': entity['_id']})
+            del entity['_id']
