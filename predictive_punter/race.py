@@ -195,6 +195,8 @@ def similar_races(self):
     query = self.similar_races_dict
     query['start_time'] = {'$lt': self.meet['date']}
 
-    return self.provider.find(racing_data.Race, query, None)
+    similar_races = self.provider.find(racing_data.Race, query, None)
+
+    return sorted(similar_races, key=lambda r: r['start_time'], reverse=True)
 
 racing_data.Race.similar_races = similar_races
