@@ -41,7 +41,7 @@ class PredictCommand(Command):
                 race['start_time'].astimezone(self.provider.local_timezone).time()
             ]
             for place in range(4):
-                row.append(','.join([str(number) for number in sorted(prediction[0][place])]) if len(prediction[0][place]) > 0 else None)
+                row.append(','.join([str(number) for number in prediction[0][place]]) if len(prediction[0][place]) > 0 else None)
             row.append(prediction[1])
 
             self.write_row(row)
