@@ -3,7 +3,7 @@ import logging
 import threading
 
 import numpy
-from sklearn import cross_validation, grid_search, svm
+from sklearn import cross_validation, grid_search, metrics, svm
 
 from .profiling_utils import log_time
 
@@ -88,8 +88,14 @@ class Predictor:
         """Generate a single predictor with the specified params and fitted with the supplied training data"""
 
         try:
+
             estimator = svm.NuSVR(**estimator_params)
             estimator.fit(train_X, train_y)
-            return estimator, estimator.score(test_X, test_y), len(train_X), len(test_X)
+
+            estimated_y = estimator.predict(test_X)
+
+            return estimator, metrics.mean_squared_error(test_y, estimated_y), len(train_X), len(test_X)
+
         except BaseException:
+
             return None
