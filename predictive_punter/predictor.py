@@ -57,33 +57,54 @@ class Predictor:
                         with concurrent.futures.ThreadPoolExecutor() as executor:
                             futures = list()
 
+                            base_estimator = None
                             param_grid = {
-                                'n_estimators': [5, 50, 500],
-                                'loss':         ['linear', 'square', 'exponential'],
-                                'random_state': [1],
+                                'C':            [0.5, 1.0, 2.0],
+                                'nu':           [0.25, 0.50, 1.00],
+                                'shrinking':    [True, False],
+                                'tol':          [0.01, 0.001, 0.0001]
                             }
                             params_list = list(grid_search.ParameterGrid(param_grid))
                             count = 0
                             for params in params_list:
                                 count += 1
-                                message = 'generating estimator {count}/{total} with params {params}'.format(count=count, total=len(params_list), params=params)
-                                futures.append(executor.submit(log_time, message, cls.generate_predictor, params, train_X, train_y, test_X, test_y))
-
+                                message = 'generating base estimator {count}/{total} with params {params}'.format(count=count, total=len(params_list), params=params)
+                                futures.append(executor.submit(log_time, message, cls.generate_predictor, svm.NuSVR, params, train_X, train_y, test_X, test_y))
                             for future in concurrent.futures.as_completed(futures):
-                                predictor = future.result()
-                                if predictor is not None:
-                                    if cls.predictor_cache[race.similar_races_hash] is None or (predictor[1] > cls.predictor_cache[race.similar_races_hash][1]):
-                                        cls.predictor_cache[race.similar_races_hash] = predictor
+                                estimator = future.result()
+                                if estimator is not None:
+                                    if base_estimator is None or estimator[1] > base_estimator[1]:
+                                        base_estimator = estimator
+                            if base_estimator is not None:
+
+                                param_grid = {
+                                    'base_estimator':   [base_estimator[0]],
+                                    'n_estimators':     [25, 50, 100],
+                                    'loss':             ['linear', 'square', 'exponential'],
+                                    'random_state':     [1],
+                                }
+                                params_list = list(grid_search.ParameterGrid(param_grid))
+                                count = 0
+                                for params in params_list:
+                                    count += 1
+                                    message = 'generating ensemble estimator {count}/{total} with params {params}'.format(count=count, total=len(params_list), params=params)
+                                    futures.append(executor.submit(log_time, message, cls.generate_predictor, ensemble.AdaBoostRegressor, params, train_X, train_y, test_X, test_y))
+
+                                for future in concurrent.futures.as_completed(futures):
+                                    predictor = future.result()
+                                    if predictor is not None:
+                                        if cls.predictor_cache[race.similar_races_hash] is None or predictor[1] > cls.predictor_cache[race.similar_races_hash][1]:
+                                            cls.predictor_cache[race.similar_races_hash] = predictor
 
             return cls.predictor_cache[race.similar_races_hash]
 
     @classmethod
-    def generate_predictor(cls, estimator_params, train_X, train_y, test_X, test_y):
+    def generate_predictor(cls, estimator_type, estimator_params, train_X, train_y, test_X, test_y):
         """Generate a single predictor with the specified params and fitted with the supplied training data"""
 
         try:
 
-            estimator = ensemble.AdaBoostRegressor(base_estimator=svm.NuSVR(), **estimator_params)
+            estimator = estimator_type(**estimator_params)
             estimator.fit(train_X, train_y)
             return estimator, estimator.score(test_X, test_y), len(train_X), len(test_X)
 
