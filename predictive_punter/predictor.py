@@ -3,7 +3,7 @@ import logging
 import threading
 
 import numpy
-from sklearn import cross_validation, grid_search, metrics, svm
+from sklearn import cross_validation, ensemble, grid_search, metrics, svm
 
 from .profiling_utils import log_time
 
@@ -58,10 +58,9 @@ class Predictor:
                             futures = list()
 
                             param_grid = {
-                                'C':            [0.5, 1.0, 2.0],
-                                'nu':           [0.25, 0.50, 0.75],
-                                'shrinking':    [True, False],
-                                'tol':          [0.01, 0.001, 0.0001]
+                                'n_estimators': [5, 50, 500],
+                                'loss':         ['linear', 'square', 'exponential'],
+                                'random_state': [1],
                             }
                             params_list = list(grid_search.ParameterGrid(param_grid))
                             count = 0
@@ -84,12 +83,9 @@ class Predictor:
 
         try:
 
-            estimator = svm.NuSVR(**estimator_params)
+            estimator = ensemble.AdaBoostRegressor(base_estimator=svm.NuSVR(), **estimator_params)
             estimator.fit(train_X, train_y)
-
-            estimated_y = estimator.predict(test_X)
-
-            return estimator, metrics.mean_squared_error(test_y, estimated_y), len(train_X), len(test_X)
+            return estimator, estimator.score(test_X, test_y), len(train_X), len(test_X)
 
         except BaseException:
 

@@ -23,7 +23,7 @@ class PredictCommand(Command):
             '2nd',
             '3rd',
             '4th',
-            'MSE'
+            'Score'
             ])
 
     def process_race(self, race):
