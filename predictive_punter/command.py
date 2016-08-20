@@ -39,10 +39,11 @@ class Command:
             'date_to':          datetime.now(),
             'logging_level':    logging.INFO,
             'max_workers':      os.cpu_count() * 5,
+            'meets':            None,
             'redis_uri':        'redis://localhost:6379/0'
         }
 
-        opts, args = getopt(args, 'bd:qr:vw:', ['backup-database', 'database-uri=', 'max-workers=', 'quiet', 'redis-uri=', 'verbose'])
+        opts, args = getopt(args, 'bd:m:qr:vw:', ['backup-database', 'database-uri=', 'max-workers=', 'meets=', 'quiet', 'redis-uri=', 'verbose'])
 
         for opt, arg in opts:
 
@@ -51,6 +52,9 @@ class Command:
 
             elif opt in ('-d', '--database-uri'):
                 config['database_uri'] = arg
+
+            elif opt in ('-m', '--meets'):
+                config['meets'] = arg.split(',')
 
             elif opt in ('-q', '--quiet'):
                 config['logging_level'] = logging.WARNING
@@ -95,6 +99,8 @@ class Command:
         self.provider = Provider(self.database, scraper)
 
         self.max_workers = kwargs['max_workers']
+
+        self.meets = kwargs['meets']
 
     def backup_database(self):
         """Backup the database if backup_database is available"""
@@ -165,7 +171,8 @@ class Command:
     def process_meet(self, meet):
         """Process the specified meet"""
 
-        self.process_collection(meet.races, self.process_race)
+        if self.meets is None or meet['track'] in self.meets:
+            self.process_collection(meet.races, self.process_race)
 
     def process_race(self, race):
         """Process the specified race"""
