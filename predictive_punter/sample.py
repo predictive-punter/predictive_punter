@@ -10,6 +10,20 @@ from . import __version__
 class Sample(racing_data.Entity):
     """A sample represents a single row of query data for a predictor"""
 
+    IMPUTERS = list()
+    for key in ('barrier', 'number', 'weight'):
+        IMPUTERS.append(max)
+    for key in ('age', 'carrying', 'races_per_year', 'spell', 'up'):
+        IMPUTERS.append(max)
+    for key1 in ('at_distance', 'at_distance_on_track', 'at_up', 'career', 'last_10', 'last_12_months', 'on_firm', 'on_good', 'on_heavy', 'on_soft', 'on_synthetic', 'on_track', 'on_turf', 'since_rest', 'with_jockey'):
+        for count in range(3):
+            IMPUTERS.append(max)
+        IMPUTERS.append(max)
+        for key2 in ('earnings_potential', 'fourth_pct', 'result_potential', 'roi', 'second_pct', 'starts', 'third_pct', 'win_pct'):
+            IMPUTERS.append(min)
+        for count in range(3):
+            IMPUTERS.append(max)
+
     normalizer_locks = dict()
 
     @classmethod
@@ -67,7 +81,7 @@ class Sample(racing_data.Entity):
                 if all_query_data[0][index] is None:
                     other_values = [value[index] for value in all_query_data[1:] if value[index] is not None]
                     if len(other_values) > 0:
-                        all_query_data[0][index] = sum(other_values) / len(other_values)
+                        all_query_data[0][index] = self.IMPUTERS[index](other_values)
                     else:
                         all_query_data[0][index] = 0.0
 
