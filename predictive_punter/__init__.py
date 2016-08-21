@@ -2,6 +2,7 @@ __version__ = '1.0.0a4'
 
 
 from .predictor import Predictor
+from . import performance_list
 from . import race
 from . import runner
 from .sample import Sample
