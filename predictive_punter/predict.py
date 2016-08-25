@@ -23,7 +23,8 @@ class PredictCommand(Command):
             '2nd',
             '3rd',
             '4th',
-            'Score'
+            'Score',
+            'Params'
             ])
 
     def process_race(self, race):
@@ -43,6 +44,7 @@ class PredictCommand(Command):
             for place in range(4):
                 row.append(','.join([str(number) for number in prediction[0][place]]) if len(prediction[0][place]) > 0 else None)
             row.append(prediction[1])
+            row.append(prediction[2])
 
             self.write_row(row)
 

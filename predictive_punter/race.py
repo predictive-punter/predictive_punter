@@ -134,8 +134,7 @@ def prediction(self):
 
     predictions = dict()
     score = None
-    train_samples = None
-    test_samples = None
+    params = None
 
     for runner in self.active_runners:
         prediction = runner.prediction
@@ -145,10 +144,8 @@ def prediction(self):
             predictions[prediction[0]].add(runner['number'])
             if score is None:
                 score = prediction[1]
-            if train_samples is None:
-                train_samples = prediction[2]
-            if test_samples is None:
-                test_samples = prediction[3]
+            if params is None:
+                params = prediction[2]
 
     prediction = list()
 
@@ -161,7 +158,7 @@ def prediction(self):
     while len(prediction) < 5:
         prediction.append(set())
 
-    return prediction, score, train_samples, test_samples
+    return prediction, score, params
 
 racing_data.Race.prediction = prediction
 

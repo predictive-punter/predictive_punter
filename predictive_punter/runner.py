@@ -42,9 +42,9 @@ def prediction(self):
     predictor = Predictor.get_predictor(self.race)
     if predictor is not None:
         try:
-            estimator, score, train_samples, test_samples = predictor
+            estimator, score = predictor
             prediction = estimator.predict(numpy.array(self.sample.normalized_query_data).reshape(1, -1))[0]
-            return prediction, score, train_samples, test_samples
+            return prediction, score, estimator.get_params()
         except BaseException:
             pass
 

@@ -3,7 +3,7 @@ import logging
 import threading
 
 import numpy
-from sklearn import cross_validation, ensemble, grid_search, metrics, svm
+from sklearn import cross_validation, grid_search, metrics, neighbors
 
 from .profiling_utils import log_time
 
@@ -40,7 +40,7 @@ class Predictor:
                             if runner.result is not None:
                                 train_X.append(runner.sample.normalized_query_data)
                                 train_y.append(runner.sample['regression_result'])
-                    if len(train_X) > 0 and (len(train_X) >= len(train_X[0])):
+                    if len(train_X) > 50:
                         train_X = numpy.array(train_X)
                         train_y = numpy.array(train_y)
 
@@ -51,45 +51,27 @@ class Predictor:
                                 if runner.result is not None:
                                     test_X.append(runner.sample.normalized_query_data)
                                     test_y.append(runner.sample['regression_result'])
-                        test_X = numpy.array(test_X)
-                        test_y = numpy.array(test_y)
+                        if len(test_X) > 0:
+                            test_X = numpy.array(test_X)
+                            test_y = numpy.array(test_y)
 
-                        with concurrent.futures.ThreadPoolExecutor() as executor:
-                            futures = list()
-
-                            base_estimator = None
-                            param_grid = {
-                                'C':            [0.5, 1.0, 2.0],
-                                'nu':           [0.25, 0.50, 1.00],
-                                'shrinking':    [True, False],
-                                'tol':          [0.01, 0.001, 0.0001]
-                            }
-                            params_list = list(grid_search.ParameterGrid(param_grid))
-                            count = 0
-                            for params in params_list:
-                                count += 1
-                                message = 'generating base estimator {count}/{total} with params {params}'.format(count=count, total=len(params_list), params=params)
-                                futures.append(executor.submit(log_time, message, cls.generate_predictor, svm.NuSVR, params, train_X, train_y, test_X, test_y))
-                            for future in concurrent.futures.as_completed(futures):
-                                estimator = future.result()
-                                if estimator is not None:
-                                    if base_estimator is None or estimator[1] > base_estimator[1]:
-                                        base_estimator = estimator
-                            if base_estimator is not None:
+                            with concurrent.futures.ThreadPoolExecutor() as executor:
+                                futures = list()
 
                                 param_grid = {
-                                    'base_estimator':   [base_estimator[0]],
-                                    'n_estimators':     [25, 50, 100],
-                                    'loss':             ['linear', 'square', 'exponential'],
-                                    'random_state':     [1],
+                                    'radius':       [100.0, 1000.0],
+                                    'weights':      ['uniform', 'distance'],
+                                    'algorithm':    ['ball_tree', 'kd_tree', 'brute'],
+                                    'leaf_size':    [30, 300],
+                                    'metric':       ['euclidean', 'manhattan', 'chebyshev', 'minkowski', 'wminkowski', 'seuclidean', 'mahalanobis'],
+                                    'p':            [1, 2]
                                 }
                                 params_list = list(grid_search.ParameterGrid(param_grid))
                                 count = 0
                                 for params in params_list:
                                     count += 1
-                                    message = 'generating ensemble estimator {count}/{total} with params {params}'.format(count=count, total=len(params_list), params=params)
-                                    futures.append(executor.submit(log_time, message, cls.generate_predictor, ensemble.AdaBoostRegressor, params, train_X, train_y, test_X, test_y))
-
+                                    message = 'generating estimator {count}/{total} with params {params}'.format(count=count, total=len(params_list), params=params)
+                                    futures.append(executor.submit(log_time, message, cls.generate_predictor, neighbors.RadiusNeighborsRegressor, params, train_X, train_y, test_X, test_y))
                                 for future in concurrent.futures.as_completed(futures):
                                     predictor = future.result()
                                     if predictor is not None:
@@ -106,7 +88,7 @@ class Predictor:
 
             estimator = estimator_type(**estimator_params)
             estimator.fit(train_X, train_y)
-            return estimator, estimator.score(test_X, test_y), len(train_X), len(test_X)
+            return estimator, estimator.score(test_X, test_y)
 
         except BaseException:
 
